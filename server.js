@@ -1,12 +1,7 @@
-const http = require('http');
-const chalk = require('chalk');
-
-const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Hello, World!\n');
+const express = require('express');
+const app = express();
+app.use(express.static('public'));
+app.get('/', (req, res) => {
+res.sendFile(__dirname + '/views/index.html');
 });
-
-const PORT = 3000;
-server.listen(PORT, () => {
-    console.log(chalk.green(`Server is running on http://localhost:${PORT}`));
-});
+app.listen(3000, () => console.log('Server running on http://localhost:3000'));

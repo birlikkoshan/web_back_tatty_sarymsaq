@@ -1,16 +1,24 @@
 {
-  "name": "assignment-1",
+  "name": "web_back_tatty_sarymsaq",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/birlikkoshan/web_back_tatty_sarymsaq.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/birlikkoshan/web_back_tatty_sarymsaq/issues"
+  },
+  "homepage": "https://github.com/birlikkoshan/web_back_tatty_sarymsaq#readme",
   "dependencies": {
-    "chalk": "^4.1.2"
+    "express": "^5.2.1"
   }
 }
