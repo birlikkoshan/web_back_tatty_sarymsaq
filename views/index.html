@@ -12,14 +12,13 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer">
     
-    <link rel="stylesheet" href="/style.css">
-    <link rel="icon" type="image/x-icon" href="/images/student.svg">
+    <link rel="stylesheet" href="/public/style.css">
+    <link rel="icon" type="image/x-icon" href="/public/icon/student.svg">
     <title>Student Management</title>
 </head>
 <body>
     <header>
         <div class="container">
-            <img class="portal" src="/icons/student.svg">
             <div class="logo">
                 <h3>Student Management</h3>
                 <p>Manage students quickly and easily</p>
@@ -36,10 +35,6 @@
     <main>
         <section id="main">
             <div class="container-content">
-                <div class="icon-student-portal">
-                    <h4>Student Portal</h4>
-                </div>
-
                 <div class="title">
                 <h1>Student Management <span>System</span></h1>
                 <p>Efficiently manage student records, track academic progress, and organize information all in one place.</p>
@@ -48,7 +43,7 @@
                 <div class="stats">
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <img src="icons/users.svg" alt="Students">
+                        <img class="icon" src="/public/icons/student.svg" alt="Students">
                     </div>
                     <div class="stat-info">
                     <h3 class="stat-value">5</h3>
@@ -58,7 +53,7 @@
 
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <img src="icons/gpa.svg" >
+                        <img class="icon" src="/public/icons/grade-rounded.svg" >
                     </div>
                     <div class="stat-info">
                     <h3 class="stat-value">3.76</h3>
@@ -68,7 +63,7 @@
 
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <img src="icons/honors.svg">
+                        <img class="icon" src="/public/icons/crown.svg">
                     </div>
                     <div class="stat-info">
                     <h3 class="stat-value">3</h3>
@@ -78,7 +73,7 @@
 
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <img src="icons/majors.svg" alt="Majors">
+                        <img class="icon" src="/public/icons/university-solid.svg" alt="Majors">
                     </div>
                     <div class="stat-info">
                     <h3 class="stat-value">5</h3>
@@ -92,7 +87,7 @@
         <section id="search">
         <div class="container-controls">
             <div class="search-bar">
-            <h2>All Students</h2>
+            <h2>Search Students</h2>
             <input type="text" placeholder="Search by name, ID or email" aria-label="Search students">
             </div>
 
@@ -114,11 +109,11 @@
                 <table>
                     <thead>
                     <tr>
-                        <th scope="col">Student</th>
-                        <th scope="col">Age</th>
-                        <th scope="col">Major</th>
-                        <th scope="col">GPA</th>
-                        <th scope="col">Actions</th>
+                        <th scope="col" class="std">Student</th>
+                        <th scope="col" class="age">Age</th>
+                        <th scope="col" class="mjr">Major</th>
+                        <th scope="col" class="gpa">GPA</th>
+                        <th scope="col" class="act">Actions</th>
                     </tr>
                     </thead>
                 <tbody>
