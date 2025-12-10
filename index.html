@@ -21,7 +21,7 @@
     </header>
 
     <main>
-        <section>
+        <section id="main">
             <div class="content">
                 <div class="icon-student-portal">
                     <h4>Student Portal</h4>
@@ -65,6 +65,93 @@
                 <div class="stat-info">
                     <h3 class="stat-value">5</h3>
                     <p class="stat-label">Majors</p>
+                </div>
+            </div>
+        </section>
+        <section id="search">
+            <div class="search-bar">
+                <h2>All Student</h2>
+                <input type="text" placeholder="Search by name, ID or email">
+            </div>
+            <div class="filter">
+                <select id="filter" class="filter-select">
+                    <option value="All">All Majors</option>
+                    <option value="se">Software-Engineer</option>
+                    <option value="cs">Cybersecurity</option>
+                    <option value="mt">Media-Technologies</option>
+                    <option value="comps">Computer-Science</option>
+                    <option value="bda">Big-Data-Analysis</option>
+                </select>
+            </div>
+        </section>
+        <section id="list">
+            <div class="table">
+                <table>
+                <tr>
+                    <th>Student</th>
+                    <th>Age</th>
+                    <th>Major</th>
+                    <th>GPA</th>
+                    <th>Actions</th>
+                </tr>
+                <tr>
+                    <td>Aikyn Sagyntai</td>
+                    <td>18</td>
+                    <td>Software Engineer</td>
+                    <td>3.5</td>
+                    <td>
+                        <button class="act-btn">✏️</button>
+                        <button class="act-btn">🗑️</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Damir Almasuly</td>
+                    <td>18</td>
+                    <td>Software Engineer</td>
+                    <td>2.6</td>
+                    <td>
+                        <button class="act-btn">✏️</button>
+                        <button class="act-btn">🗑️</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Arthur Jaxygaliyev</td>
+                    <td>19</td>
+                    <td>Cybersecurity</td>
+                    <td>3.9</td>
+                    <td>
+                        <button class="act-btn">✏️</button>
+                        <button class="act-btn">🗑️</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Beisinbek Nursultan</td>
+                    <td>20</td>
+                    <td>Big Data Analysis</td>
+                    <td>3.3</td>
+                    <td>
+                        <button class="act-btn">✏️</button>
+                        <button class="act-btn">🗑️</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Damir Kabenov</td>
+                    <td>19</td>
+                    <td>Computer Science</td>
+                    <td>4.0</td>
+                    <td>
+                        <button class="act-btn">✏️</button>
+                        <button class="act-btn">🗑️</button>
+                    </td>
+                </tr>
+                </table>
+            </div>
+        </section>
+        <section>
+            <div class="add-std">
+                <div class="title-container">
+                    <h3>Add New Student</h3>
+                    <p>Fill in the details below</p>
                 </div>
             </div>
         </section>
