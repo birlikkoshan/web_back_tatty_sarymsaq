@@ -6,6 +6,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      integrity="sha512-+Uo4Pl3KjvRqoLUBqC1kmr1vTZGi99ZTSdK6xGLV6I6DqloXFMSQ6FMurhtSJkOlWdFiM0ToePodyN2pKbI+Hg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer">
     <link rel="stylesheet" href="style.css">
     <title>Student Management</title>
 </head>
@@ -16,18 +21,21 @@
                 <h3>Student Management</h3>
                 <p>Manage students quickly and easily</p>
             </div>
+            <img class="portal" src="icons/student.svg">
             <nav>
-                <a href="#list">Student</a>
-                <a href="#add-student">Add new</a>
+                <div class="link">
+                <a class="links" href="#list">Student</a>
+                <a class="links" href="#add-student">Add new</a>
+                </div>
             </nav>
         </div>
     </header>
 
     <main>
         <section id="main">
-            <div class="container content">
+            <div class="container-content">
                 <div class="icon-student-portal">
-                <h4>Student Portal</h4>
+                    <h4>Student Portal</h4>
                 </div>
 
                 <div class="title">
@@ -38,7 +46,7 @@
                 <div class="stats">
                 <div class="stat-card">
                     <div class="stat-icon">
-                    <!-- <img src="icons/users.svg" alt="Students"> -->
+                        <img src="icons/users.svg" alt="Students">
                     </div>
                     <div class="stat-info">
                     <h3 class="stat-value">5</h3>
@@ -80,7 +88,7 @@
         </section>
 
         <section id="search">
-        <div class="container controls">
+        <div class="container-controls">
             <div class="search-bar">
             <h2>All Students</h2>
             <input type="text" placeholder="Search by name, ID or email" aria-label="Search students">
