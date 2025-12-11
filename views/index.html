@@ -6,226 +6,98 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-      integrity="sha512-+Uo4Pl3KjvRqoLUBqC1kmr1vTZGi99ZTSdK6xGLV6I6DqloXFMSQ6FMurhtSJkOlWdFiM0ToePodyN2pKbI+Hg=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer">
-    
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="/public/icon/student.svg">
-    <title>Student Management</title>
+    <title>Student Management System - Tatty Sarymsaq</title>
 </head>
 <body>
     <header>
         <div class="container">
             <div class="logo">
-                <h3>Student Management</h3>
-                <p>Manage students quickly and easily</p>
+                <h2>Student Management System</h2>
             </div>
             <nav>
-                <div class="link">
-                <a class="links" href="#list">Student</a>
-                <a class="links" href="#add-student">Add new</a>
-                </div>
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#team" class="nav-link">Team</a>
+                <a href="#features" class="nav-link">Features</a>
             </nav>
         </div>
     </header>
 
     <main>
-        <section id="main">
-            <div class="container-content">
-                <div class="title">
-                <h1>Student Management <span>System</span></h1>
-                <p>Efficiently manage student records, track academic progress, and organize information all in one place.</p>
-                </div>
+        <section id="home" class="hero">
+            <div class="container">
+                <h1 class="project-title">Student Management System</h1>
+                <p class="project-description">
+                    A comprehensive platform designed to simplify course registration, curriculum management, and academic scheduling. 
+                    Our system helps students efficiently manage their academic journey with automated course recommendations, 
+                    comfortable timetable generation, and easy access to all course-related information.
+                </p>
+            </div>
+        </section>
 
-                <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <img class="icon" src="icons/student.svg" alt="Students">
+        <section id="team" class="team-section">
+            <div class="container">
+                <h2 class="section-title">Our Team</h2>
+                <p class="section-subtitle">Group SE-2429</p>
+                <div class="team-grid">
+                    <div class="team-card">
+                        <img src="images/me.jpg" alt="Team Member" class="team-icon">
+                        <h3 class="team-name">Birlik Koshan</h3>
                     </div>
-                    <div class="stat-info">
-                    <h3 class="stat-value">5</h3>
-                    <p class="stat-label">Total Students</p>
+                    <div class="team-card">
+                        <img src="images/alih.jpeg" alt="Team Member" class="team-icon">
+                        <h3 class="team-name">Alikhan Nurzhan</h3>
                     </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <img class="icon" src="icons/grade-rounded.svg" >
+                    <div class="team-card">
+                        <img src="images/artur.jpg" alt="Team Member" class="team-icon">
+                        <h3 class="team-name">Artur Jaxygaliyev</h3>
                     </div>
-                    <div class="stat-info">
-                    <h3 class="stat-value">3.76</h3>
-                    <p class="stat-label">Average GPA</p>
+                    <div class="team-card">
+                        <img src="images/nurs.jpg" alt="Team Member" class="team-icon">
+                        <h3 class="team-name">Nursultan Beisenbek</h3>
                     </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <img class="icon" src="icons/crown.svg">
-                    </div>
-                    <div class="stat-info">
-                    <h3 class="stat-value">3</h3>
-                    <p class="stat-label">Honors Students</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <img class="icon" src="icons/university-solid.svg" alt="Majors">
-                    </div>
-                    <div class="stat-info">
-                    <h3 class="stat-value">5</h3>
-                    <p class="stat-label">Majors</p>
-                    </div>
-                </div>
                 </div>
             </div>
         </section>
 
-        <section id="search">
-        <div class="container-controls">
-            <div class="search-bar">
-            <h2>Search Students</h2>
-            <input type="text" placeholder="Search by name, ID or email" aria-label="Search students">
-            </div>
-
-            <div class="filter">
-            <select id="filter" class="filter-select" aria-label="Filter by major">
-                <option value="All">All Majors</option>
-                <option value="se">Software-Engineer</option>
-                <option value="cs">Cybersecurity</option>
-                <option value="mt">Media-Technologies</option>
-                <option value="comps">Computer-Science</option>
-                <option value="bda">Big-Data-Analysis</option>
-            </select>
-            </div>
-        </div>
-        </section>
-
-        <section id="list">
-            <div class="table">
-                <table>
-                    <thead>
-                    <tr>
-                        <th scope="col" class="std">Student</th>
-                        <th scope="col" class="age">Age</th>
-                        <th scope="col" class="mjr">Major</th>
-                        <th scope="col" class="gpa">GPA</th>
-                        <th scope="col" class="act">Actions</th>
-                    </tr>
-                    </thead>
-                <tbody>
-                    <tr>
-                        <td>Aikyn Sagyntai</td>
-                        <td>18</td>
-                        <td>Software Engineer</td>
-                        <td>3.5</td>
-                        <td>
-                            <button type="button" class="act-btn" aria-label="Edit-Aikyn">✏️</button>
-                            <button type="button" class="act-btn" aria-label="Delete-Aikyn">🗑️</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Amir Berdibek</td>
-                        <td>18</td>
-                        <td>Software Engineer</td>
-                        <td>2.6</td>
-                        <td>
-                            <button type="button" class="act-btn" aria-label="Edit-Amir">✏️</button>
-                            <button type="button" class="act-btn" aria-label="Delete-Amir">🗑️</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Arthur Jaxygaliyev</td>
-                        <td>19</td>
-                        <td>Cybersecurity</td>
-                        <td>3.9</td>
-                        <td>
-                            <button type="button" class="act-btn" aria-label="Edit-Arthur">✏️</button>
-                            <button type="button" class="act-btn" aria-label="Delete-Arthur">🗑️</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Beisinbek Nursultan</td>
-                        <td>20</td>
-                        <td>Big Data Analysis</td>
-                        <td>3.3</td>
-                        <td>
-                            <button type="button" class="act-btn" aria-label="Edit-Nursultan">✏️</button>
-                            <button type="button" class="act-btn" aria-label="Delete-Nursultan">🗑️</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Damir Kabenov</td>
-                        <td>19</td>
-                        <td>Computer Science</td>
-                        <td>4.0</td>
-                        <td>
-                            <button type="button" class="act-btn" aria-label="Edit-Damir">✏️</button>
-                            <button type="button" class="act-btn" aria-label="Delete-Damir">🗑️</button>
-                        </td>
-                    </tr>
-                </tbody>
-                </table>
-            </div>
-        </section>
-        <section id="add-student">
-            <div class="add-std">
-                <div class="title-container">
-                    <h3>Add New Student</h3>
-                    <p>Fill in the details below</p>
-                </div>
-                <div class="input-field">
-                    <form id="studentForm" class="form-grid" novalidate>
-                        <label>
-                            <span class="label-txt">Full Name</span>
-                            <input name="fullname" type="text" placeholder="Enter name" required>
-                        </label>
-
-                        <label>
-                            <span class="label-txt">E-mail</span>
-                            <input name="email" type="email" placeholder="Enter e-mail" required>
-                        </label>
-
-                        <label>
-                            <span class="label-txt">Age</span>
-                            <input name="age" type="number" placeholder="Enter age" required>
-                        </label>
-
-                        <label>
-                            <span class="label-txt">Majors</span>
-                            <select name="major" class="filter-select" required>
-                                <option value="" disabled selected>Select a major</option>
-                                <option value="se">Software-Engineer</option>
-                                <option value="cs">Cybersecurity</option>
-                                <option value="mt">Media-Technologies</option>
-                                <option value="comps">Computer-Science</option>
-                                <option value="bda">Big-Data-Analysis</option>
-                            </select>
-                        </label>
-
-                        <label>
-                            <span class="label-txt">GPA (0.0 - 4.0)</span>
-                            <input name="gpa" type="number" min="0" max="4" step="0.01" placeholder="Enter GPA" required>
-                        </label>
-
-                        <label class="full-width">
-                            <span class="label-txt">Notes (Optional)</span>
-                            <textarea name="notes" placeholder="Any additional notes about the student..."></textarea>
-                        </label>
-                        <div class="form-actions full-width">
-                            <button type="submit" class="add-btn">Add Student</button>
-                        </div>
-                    </form>
+        <section id="features" class="features-section">
+            <div class="container">
+                <h2 class="section-title">Main Features</h2>
+                <p class="section-subtitle">Everything you need to manage your academic journey</p>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <img src="icons/edit.png" alt="Register for Courses" class="feature-icon">
+                        <h3 class="feature-title">Register for Courses</h3>
+                        <p class="feature-description">Easily browse and register for courses with a simple, intuitive interface. Select from available courses and complete registration in just a few clicks.</p>
+                    </div>
+                    <div class="feature-card">
+                        <img src="icons/close.png" alt="Drop Courses" class="feature-icon">
+                        <h3 class="feature-title">Drop Courses</h3>
+                        <p class="feature-description">Need to make changes to your schedule? Drop courses effortlessly with our streamlined process, ensuring you stay in control of your academic path.</p>
+                    </div>
+                    <div class="feature-card">
+                        <img src="icons/curriculum.png" alt="Find Your Curriculum" class="feature-icon">
+                        <h3 class="feature-title">Find Your Curriculum</h3>
+                        <p class="feature-description">Access your complete curriculum at a glance. View all required courses, prerequisites, and track your academic progress throughout your program.</p>
+                    </div>
+                    <div class="feature-card">
+                        <img src="icons/calendar.png" alt="Automatic Timetable Generation" class="feature-icon">
+                        <h3 class="feature-title">Automatic Timetable Generation</h3>
+                        <p class="feature-description">Automatically generate a comfortable, conflict-free timetable with dates, classrooms, teacher names, and their contact information based on your selected courses.</p>
+                    </div>
+                    <div class="feature-card">
+                        <img src="icons/student.svg" alt="Teacher Information" class="feature-icon">
+                        <h3 class="feature-title">Teacher Information</h3>
+                        <p class="feature-description">Access complete teacher contact information, office hours, and course details for all your registered courses in one convenient location.</p>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
+
     <footer class="footer">
-        <div class="footer-container">
-            <p>© 2025 Student Management System - Built by tatty_sarymsaq</p>
+        <div class="container">
+            <p>&copy; 2025 Student Management System by Tatty Sarymsaq - Group SE-2429. All rights reserved.</p>
         </div>
     </footer>
 </body>
