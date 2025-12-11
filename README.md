@@ -1,15 +1,16 @@
 # Student and Course Management System
-## Team
+## Team Tatty Sarymsaq
 * Artur Jaxygaliyev
 * Birlik Koshan
 * Alikhan Nurzhan
 * Nursultan Beisenbek
 ## Description
 This is a system designed for managing student and course information, which allows for such actions as
-* Enrolling students to courses
-* Viewing students enrolled into course
-* Changing information of individual students and courses
-* Perform search for students and courses based on name, id, email and course instructor
+* Enrolling to courses
+* Dropping from courses
+* Finding your own curriculum easily
+* Automatically generate comfortable timetable
+* See your courses' techears' contact info
 ## Installation
 1. Clone this repo
 2. `npm install`
