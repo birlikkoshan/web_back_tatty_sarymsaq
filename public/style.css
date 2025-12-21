@@ -40,7 +40,7 @@ body {
   margin: 0 12px;
   text-decoration: none;
   color: #6b7280;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .nav a.active {
@@ -169,21 +169,19 @@ body {
   font-weight: 500;
 }
 
-.footer {
-    background: #1e3a8a;
-    color: #c7d2fe;
-    padding: 20px 0;
+footer {
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
 }
 
 .footer-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 80px;
-    text-align: center;
-    font-size: 14px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
 }
-
-/*----------------------------------Contact-----------------------------------*/
 
 .contact {
   padding: 80px 0;
@@ -238,7 +236,6 @@ body {
   border-color: #4f46e5;
 }
 
-/*--------------------------------404--------------------------------*/
 
 .error {
   padding: 150px 0;
