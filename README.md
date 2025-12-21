@@ -11,11 +11,29 @@ This is a system designed for managing student and course information, which all
 * Finding your own curriculum easily
 * Automatically generate comfortable timetable
 * See your courses' techears' contact info
-## Installation
+## Installation & Running Instructions
 1. Clone this repo
-2. `npm install`
-3. `node server.js`
-4. Follow the link shown on console
+2. Navigate to the project directory
+3. Install dependencies: `npm install`
+4. Start the server: `node server.js`
+5. Open your browser and visit `http://localhost:3000`
+
+## API Routes
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/` | GET | Home page |
+| `/about` | GET | About page |
+| `/contact` | GET | Contact form page |
+| `/contact` | POST | Submit contact form |
+
+## Forms
+
+### Contact Form
+- **Fields:** Name, Email, Subject, Message
+- **Submission:** POST to `/contact`
+- **Response:** Confirmation message with user's name
+- **Storage:** Submissions saved to `submissions.json`
 ## Future Roadmap
 
 ### Week 1: Project Setup & Planning
