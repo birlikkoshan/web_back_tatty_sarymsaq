@@ -34,6 +34,7 @@ This is a system designed for managing student and course information, which all
 - **Submission:** POST to `/contact`
 - **Response:** Confirmation message with user's name
 - **Storage:** Submissions saved to `submissions.json`
+
 ## Future Roadmap
 
 ### Week 1: Project Setup & Planning
