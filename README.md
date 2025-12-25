@@ -22,10 +22,13 @@ This is a system designed for managing student and course information, which all
 
 | Route | Method | Description |
 |-------|--------|-------------|
-| `/` | GET | Home page |
+| `/` | GET | Home page with navigation |
 | `/about` | GET | About page |
 | `/contact` | GET | Contact form page |
 | `/contact` | POST | Submit contact form |
+| `/search` | GET | Search functionality (query param: `q`) |
+| `/item/:id` | GET | Item/Page detail view (route param: `id`) |
+| `/api/info` | GET | Project information in JSON format |
 
 ## Forms
 
@@ -34,6 +37,25 @@ This is a system designed for managing student and course information, which all
 - **Submission:** POST to `/contact`
 - **Response:** Confirmation message with user's name
 - **Storage:** Submissions saved to `submissions.json`
+
+## Features
+
+### Search Functionality
+- **Endpoint:** `GET /search?q=<query>`
+- **Description:** Search through available pages in the views directory
+- **Usage:** Navigate to `/search?q=about` to find pages matching "about"
+- **Response:** HTML list of matching pages with links to individual items
+
+### Item/Page Details
+- **Endpoint:** `GET /item/:id`
+- **Description:** Display detailed information about a specific page or item
+- **Fallback:** If a `.html` file doesn't exist, checks `items.json` for matching data
+- **Response:** Either the HTML file or JSON data rendered as HTML
+
+### API Info
+- **Endpoint:** `GET /api/info`
+- **Description:** Returns project metadata including name, version, description, and available routes
+- **Response:** JSON object with project information
 
 ## Future Roadmap
 
