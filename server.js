@@ -2,10 +2,18 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 
+
 const app = express();
 app.use(express.static("public"));
 app.use(express.static("views"));
 app.use(express.urlencoded({ extended: true }));
+
+
+app.use((req,res,next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+})
+
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/index.html");
@@ -63,9 +71,10 @@ app.get("/search", (req, res) => {
   fs.readdir(viewDir, (err, files) => {
     if (err) return res.status(500).send("Server error");
 
+
     const matches = files
-      .filter((f) => f.toLowerCase().includes(q))
-      .map((f) => ({ id: path.parse(f).name, name: f }));
+      .filter((f) => f.toLowerCase().includes(q));
+
 
     if (matches.length === 0) {
       return res.send(
@@ -73,8 +82,9 @@ app.get("/search", (req, res) => {
       );
     }
 
+
     const list = matches
-      .map((m) => `<li><a href="/item/${encodeURIComponent(m.id)}">${m.name}</a></li>`)
+      .map((m) => `<li><a href="/views/${path.parse(m).name}">${path.parse(m).name}</a></li>`)
       .join("");
 
     res.send(`<h2>Results for "${q}"</h2><ul>${list}</ul><p><a href="/">Back</a></p>`);
