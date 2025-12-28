@@ -16,26 +16,9 @@ a {
   color: inherit;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 80px 24px;
-}
 
-header {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-  height: 70px;
-}
 
-.header-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+/* Header styles are centralized in /public/style.css */
 
 .logo {
   display: flex;
@@ -47,18 +30,6 @@ header {
 
 .logo-icon {
   font-size: 22px;
-}
-
-nav {
-  display: flex;
-  gap: 28px;
-}
-
-nav a {
-  color: #64748b;
-  font-weight: 600;
-  padding-bottom: 4px;
-  font-family: "Poppins", sans-serif;
 }
 
 nav a.active {
@@ -76,7 +47,7 @@ nav a.active {
 }
 
 .about-hero {
-  background: radial-gradient(circle at top, #eef3ff, #f9fbff);
+  background: #f9fbff;
   text-align: center;
 }
 
@@ -160,7 +131,7 @@ nav a.active {
 
 .story-visual {
   height: 360px;
-  background: linear-gradient(135deg, #dbeafe, #eff6ff);
+  background: #eef6ff;
   border-radius: 20px;
 }
 

@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Courses</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <div class="logo">StudentMS</div>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/courses">Courses</a>
+        <a href="/contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1 style="margin:18px 0">Available Courses</h1>
+    
+    <form method="get" action="/courses" style="margin-bottom:20px;">
+      <input name="q" placeholder="Search courses by title, code, instructor..." value="{{SEARCH_QUERY}}" style="padding:10px 12px; width:60%; max-width:420px;">
+      <button class="btn btn-primary" type="submit">Search</button>
+      <a href="/courses" class="btn btn-secondary" style="margin-left:8px;">Clear</a>
+    </form>
+
+    <div class="courses-grid">
+      {{COURSES_LIST}}
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-container">&copy; 2025 Student Management System</div>
+  </footer>
+</body>
+</html>
