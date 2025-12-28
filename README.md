@@ -25,32 +25,109 @@ This is a system designed for managing student and course information, which all
 | `/` | GET | Home page with navigation |
 | `/about` | GET | About page |
 | `/contact` | GET | Contact form page |
-| `/contact` | POST | Submit contact form |
-| `/search` | GET | Search functionality (query param: `q`) |
-| `/item/:id` | GET | Item/Page detail view (route param: `id`) |
+| `/contact` | POST | Submit contact form (with validation) |
+| `/courses` | GET | List all courses with search functionality |
+| `/courses/:id` | GET | Course enrollment detail page (dynamic from items.json) |
+| `/api/courses` | GET | Get courses JSON with optional search query |
 | `/api/info` | GET | Project information in JSON format |
+| `/search` | GET | File-based search (query param: `q`) |
+
+## Project Structure
+
+### Routes Organization (`/routes` directory)
+The application is organized into modular route files for better maintainability:
+
+- **`pages.js`** - Static pages (home, about, contact)
+  - `GET /` → index.html
+  - `GET /about` → about.html  
+  - `GET /contact` → contact.html
+
+- **`courses.js`** - Course listing and API
+  - `GET /courses` → Dynamic courses list with search
+  - `GET /api/courses` → Returns filtered courses JSON
+  - Uses template: `views/courses.html`
+
+- **`items.js`** - Course detail pages
+  - `GET /courses/:id` → Individual course enrollment page
+  - Loads data from `items.json`
+  - Uses template: `views/enrollment.html`
+  - Helper functions: `readItems()`, `findItemById()`, `calculateStats()`, `generateCourseInfo()`
+
+- **`contact.js`** - Contact form submission
+  - `POST /contact` → Handle form submissions
+  - Server-side validation with HTTP 400 error responses
+  - Saves to `submissions.json`
+
+- **`search.js`** - File search functionality
+  - `GET /search?q=<query>` → Search files by name
+
+- **`api.js`** - API metadata
+  - `GET /api/info` → Project information
+
+### Template-Based HTML Files
+
+- **`views/courses.html`** - Template for courses listing page
+  - Placeholder: `{{SEARCH_QUERY}}` - Current search query
+  - Placeholder: `{{COURSES_LIST}}` - Generated course cards
+
+- **`views/enrollment.html`** - Template for course detail page
+  - Placeholder: `{{COURSE_INFO}}` - Complete course information block
+  - Simplified single placeholder for all course details
+  - Server generates course info with `generateCourseInfo()` function
+
+## Features
+
+### Dynamic Course Rendering
+- All course data comes from `items.json`
+- Server reads JSON and generates HTML dynamically
+- Templates use `{{PLACEHOLDER}}` system for data injection
+- Support for 5 courses: Calculus 1, Introduction to Programming, International Language 1, OOP, Web-Technologies
+
+### Course Search
+- **Endpoint:** `GET /courses?q=<query>`
+- **Search fields:** Course title, code, instructor, description
+- **Case-insensitive:** Search matches partial strings
+- **API:** `GET /api/courses?q=<query>` returns JSON
+
+### Contact Form Validation
+- **Required fields:** Name, Email, Message
+- **Email validation:** Proper email format check
+- **HTTP 400 response:** Returns JSON with validation errors
+- **Success response:** HTTP 201 with confirmation message
+- **Storage:** Submissions saved to `submissions.json` with timestamp
+
+### Course Enrollment Details
+- **Dynamic rendering** from `items.json`
+- **Course information includes:**
+  - Credits, code, title
+  - Description and prerequisites
+  - Instructor name and email
+  - Schedule and room location
+  - Enrollment status with progress bar
+  - Remaining spots calculation
 
 ## Forms
 
 ### Contact Form
-- **Fields:** Name, Email, Subject, Message
+- **Fields:** Name, Email, Message
 - **Submission:** POST to `/contact`
-- **Response:** Confirmation message with user's name
-- **Storage:** Submissions saved to `submissions.json`
+- **Validation:** Server-side with HTTP 400 error responses for invalid data
+- **Response:** JSON with success message or validation error details
+- **Storage:** Submissions saved to `submissions.json` with timestamp
 
-## Features
+## Additional Features
 
 ### Search Functionality
 - **Endpoint:** `GET /search?q=<query>`
 - **Description:** Search through available pages in the views directory
 - **Usage:** Navigate to `/search?q=about` to find pages matching "about"
-- **Response:** HTML list of matching pages with links to individual items
+- **Response:** HTML list of matching pages with links
 
-### Item/Page Details
-- **Endpoint:** `GET /item/:id`
-- **Description:** Display detailed information about a specific page or item
-- **Fallback:** If a `.html` file doesn't exist, checks `items.json` for matching data
-- **Response:** Either the HTML file or JSON data rendered as HTML
+### Course Detail Pages
+- **Endpoint:** `GET /courses/:id`
+- **Description:** Display detailed information about a specific course
+- **Fallback:** Checks static HTML file first, then `items.json` for matching data
+- **Response:** Rendered course enrollment page with all details
 
 ### API Info
 - **Endpoint:** `GET /api/info`
