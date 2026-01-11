@@ -13,7 +13,10 @@ db.run(`CREATE TABLE IF NOT EXISTS Courses(
     capacity INTEGER,
     enrolled INTEGER,
     prerequisites TEXT)`)
-
+db.run(`CREATE TABLE IF NOT EXISTS Instructors(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT)`)
 
 // Import route modules
 const pagesRoutes = require("./routes/pages");

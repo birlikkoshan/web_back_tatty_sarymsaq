@@ -20,6 +20,7 @@ function readItems(callback) {
   });
 }
 
+
 function insertCourse(err,items) {
     if (err){
         console.log(err)
@@ -34,7 +35,17 @@ function insertCourse(err,items) {
     }
 }
 
+
+
 db.serialize(()=>{
+    db.run(`CREATE TABLE IF NOT EXISTS Instructors(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT)`)
+    db.run(`INSERT INTO Instructors(name,email) VALUES(?,?)`,["Birlik Koshan","birlik@university.edu"])
+    db.run(`INSERT INTO Instructors(name,email) VALUES(?,?)`,["Artur Jaxygaliyev","artur@university.edu"])
+    db.run(`INSERT INTO Instructors(name,email) VALUES(?,?)`,["Alikhan Nurzhan","alikhan@university.edu"])
+    db.run(`INSERT INTO Instructors(name,email) VALUES(?,?)`,["Nursultan Beisenbek","nursultan@university.edu"])
     db.run(`CREATE TABLE IF NOT EXISTS Courses(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -44,8 +55,17 @@ db.serialize(()=>{
         instructor_id INTEGER,
         capacity INTEGER,
         enrolled INTEGER,
-        prerequisites TEXT)`)
+        prerequisites TEXT,
+        FOREIGN KEY(instructor_id) REFERENCES Instructor(id))`)
     readItems(insertCourse)
+})
+
+db.serialize(()=>{
+    db.run(`UPDATE Courses SET instructor_id = 1 WHERE id = 1`)
+    db.run(`UPDATE Courses SET instructor_id = 2 WHERE id = 2`)
+    db.run(`UPDATE Courses SET instructor_id = 3 WHERE id = 3`)
+    db.run(`UPDATE Courses SET instructor_id = 4 WHERE id = 4`)
+    db.run(`UPDATE Courses SET instructor_id = 1 WHERE id = 5`)
 })
 
 
