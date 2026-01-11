@@ -1,30 +1,10 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const sqlite3 = require("sqlite3");
 
+const db = new sqlite3.Database('database.db');
 const router = express.Router();
-
-// Helper function to read items from JSON
-function readItems(callback) {
-  const itemsPath = path.join(__dirname, "../items.json");
-  fs.readFile(itemsPath, "utf8", (err, data) => {
-    if (err) {
-      callback(err, null);
-      return;
-    }
-    try {
-      const items = JSON.parse(data);
-      callback(null, items);
-    } catch (e) {
-      callback(e, null);
-    }
-  });
-}
-
-// Helper function to find item by ID
-function findItemById(items, id) {
-  return items.find((it) => String(it.id) === String(id));
-}
 
 // Helper function to calculate course stats
 function calculateStats(item) {
@@ -118,39 +98,57 @@ router.get("/courses/:id", (req, res) => {
   fs.access(candidate, fs.constants.R_OK, (err) => {
     if (!err) return res.sendFile(candidate);
 
-    // Load from items.json if static file doesn't exist
-    readItems((err, items) => {
-      if (err) {
-        console.error("Error reading items.json:", err);
-        return res.status(500).send("Error loading courses");
-      }
+    // Load from database if static file doesn't exist
+    const sql = `
+      SELECT 
+        c.id, 
+        c.title, 
+        c.code, 
+        c.credits, 
+        c.description, 
+        c.capacity, 
+        c.enrolled, 
+        c.prerequisites,
+        i.name as instructor,
+        i.email,
+        i.id as instructor_id
+      FROM Courses c
+      LEFT JOIN Instructors i ON c.instructor_id = i.id
+      WHERE c.id = ?
+    `;
 
-      const item = findItemById(items, id);
-
-      if (!item) {
-        return res.status(404).send(`
-          <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
-            <h2>Course Not Found</h2>
-            <p>Course with ID ${id} does not exist.</p>
-            <p><a href="/courses">Back to Courses</a></p>
-          </div>
-        `);
-      }
-
-      // Calculate stats
-      const stats = calculateStats(item);
-
-      // Load template and render
-      const enrollmentPath = path.join(__dirname, "../views", "enrollment.html");
-      fs.readFile(enrollmentPath, "utf8", (err, template) => {
+    db.serialize(() => {
+      db.get(sql, [id], (err, item) => {
         if (err) {
-          console.error("Error reading enrollment template:", err);
-          return res.status(500).send("Error loading course details");
+          console.error("Error reading from database:", err);
+          return res.status(500).send("Error loading courses");
         }
 
-        const courseInfo = generateCourseInfo(item, stats);
-        const html = template.replace(/{{COURSE_INFO}}/g, courseInfo);
-        res.send(html);
+        if (!item) {
+          return res.status(404).send(`
+            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
+              <h2>Course Not Found</h2>
+              <p>Course with ID ${id} does not exist.</p>
+              <p><a href="/courses">Back to Courses</a></p>
+            </div>
+          `);
+        }
+
+        // Calculate stats
+        const stats = calculateStats(item);
+
+        // Load template and render
+        const enrollmentPath = path.join(__dirname, "../views", "enrollment.html");
+        fs.readFile(enrollmentPath, "utf8", (err, template) => {
+          if (err) {
+            console.error("Error reading enrollment template:", err);
+            return res.status(500).send("Error loading course details");
+          }
+
+          const courseInfo = generateCourseInfo(item, stats);
+          const html = template.replace(/{{COURSE_INFO}}/g, courseInfo);
+          res.send(html);
+        });
       });
     });
   });

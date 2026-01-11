@@ -6,6 +6,24 @@
   --text-color: #2E2B41;
   --input-color: #e0ecff;
 }
+
+.home-back-btn{
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 1.5rem;
+  color: var(--base-color);
+  text-decoration: none;
+  background-color: var(--accent-color);
+  padding: 10px 15px;
+  border-radius: 8px;
+  z-index: 10000;
+}
+
+.home-back-btn:hover{
+  text-decoration: none;
+}
+
 *{
   margin: 0;
   padding: 0;

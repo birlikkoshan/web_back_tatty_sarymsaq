@@ -33,13 +33,180 @@
       <a href="/courses" class="btn btn-secondary" style="margin-left:8px;">Clear</a>
     </form>
 
+    <form method="get" action="/courses" style="margin-bottom:20px;">
+        <button class="btn btn-primary" type="submit">Refresh</button>
+    </form>
+
+
     <div class="courses-grid">
       {{COURSES_LIST}}
     </div>
+    <div style="margin: 20px 0; text-align: center;">
+      <button class="btn btn-primary" id="addCourseBtn">Add New Course</button>
+    </div>
+
   </main>
+
+  <!-- Modal -->
+  <div id="courseModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add New Course</h2>
+        <button class="close-btn" id="closeModal">&times;</button>
+      </div>
+      
+      <div id="alertMessage" class="alert"></div>
+      
+      <form id="courseForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="title">Title *</label>
+            <input type="text" id="title" name="title" required>
+          </div>
+          <div class="form-group">
+            <label for="code">Course Code *</label>
+            <input type="text" id="code" name="code" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="credits">Credits</label>
+            <input type="number" id="credits" name="credits" min="0" max="10">
+          </div>
+          <div class="form-group">
+            <label for="capacity">Capacity</label>
+            <input type="number" id="capacity" name="capacity" min="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="instructor">Instructor</label>
+            <input type="text" id="instructor" name="instructor">
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="schedule">Schedule</label>
+          <input type="text" id="schedule" name="schedule" placeholder="e.g., Mon & Wed 10:00-11:30 AM">
+        </div>
+
+        <div class="form-group">
+          <label for="room">Room</label>
+          <input type="text" id="room" name="room" placeholder="e.g., 101 Building">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="enrolled">Enrolled</label>
+            <input type="number" id="enrolled" name="enrolled" min="0" value="0">
+          </div>
+          <div class="form-group">
+            <label for="prerequisites">Prerequisites</label>
+            <input type="text" id="prerequisites" name="prerequisites" placeholder="None">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn-submit">Add Course</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <footer class="footer">
     <div class="footer-container">&copy; 2025 Student Management System</div>
   </footer>
+
+  <script>
+    const modal = document.getElementById('courseModal');
+    const addCourseBtn = document.getElementById('addCourseBtn');
+    const closeModal = document.getElementById('closeModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const courseForm = document.getElementById('courseForm');
+    const alertMessage = document.getElementById('alertMessage');
+
+    // Open modal
+    addCourseBtn.addEventListener('click', () => {
+      modal.classList.add('show');
+      courseForm.reset();
+      alertMessage.classList.remove('show');
+    });
+
+    // Close modal
+    const closeModalWindow = () => {
+      modal.classList.remove('show');
+      alertMessage.classList.remove('show');
+    };
+
+    closeModal.addEventListener('click', closeModalWindow);
+    cancelBtn.addEventListener('click', closeModalWindow);
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeModalWindow();
+      }
+    });
+
+    // Handle form submission
+    courseForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = {
+        title: document.getElementById('title').value,
+        code: document.getElementById('code').value,
+        credits: document.getElementById('credits').value,
+        capacity: document.getElementById('capacity').value,
+        description: document.getElementById('description').value,
+        instructor: document.getElementById('instructor').value,
+        email: document.getElementById('email').value,
+        schedule: document.getElementById('schedule').value,
+        room: document.getElementById('room').value,
+        enrolled: document.getElementById('enrolled').value,
+        prerequisites: document.getElementById('prerequisites').value
+      };
+
+      try {
+        const response = await fetch('/api/courses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert('Course added successfully!', 'success');
+          setTimeout(() => {
+            closeModalWindow();
+            location.reload();
+          }, 1500);
+        } else {
+          showAlert(data.error || 'Error adding course', 'error');
+        }
+      } catch (error) {
+        showAlert('Error adding course: ' + error.message, 'error');
+      }
+    });
+
+    function showAlert(message, type) {
+      alertMessage.textContent = message;
+      alertMessage.className = `alert show alert-${type}`;
+    }
+  </script>
 </body>
 </html>

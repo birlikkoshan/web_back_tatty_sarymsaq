@@ -59,4 +59,66 @@ router.delete("/api/courses/:id", (req,res) => {
   })
 })
 
+router.post("/api/courses", (req, res) => {
+  const { title, code, credits, description, instructor, email, schedule, room, capacity, enrolled, prerequisites } = req.body;
+  
+  // Validate required fields
+  if (!title || !code) {
+    return res.status(400).json({ error: "Title and Code are required" });
+  }
+
+  // Insert into SQLite database
+  db.serialize(() => {
+    db.run(
+      `INSERT INTO Courses (title, code, credits, description, instructor_id, capacity, enrolled, prerequisites) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title, code, parseInt(credits) || 0, description, 1, parseInt(capacity) || 0, parseInt(enrolled) || 0, prerequisites || "None"],
+      function(err) {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({ error: "Could not save course to database" });
+        }
+
+        // Also add to items.json for compatibility
+        const itemsPath = path.join(__dirname, "../items.json");
+        fs.readFile(itemsPath, "utf8", (err, data) => {
+          let items = [];
+          if (!err) {
+            try {
+              items = JSON.parse(data);
+            } catch (e) {
+              console.log("Warning: Could not parse items.json");
+            }
+          }
+
+          const newId = this.lastID;
+          const newCourse = {
+            id: newId,
+            title,
+            type: "course",
+            code,
+            credits: parseInt(credits) || 0,
+            description,
+            instructor,
+            email,
+            schedule,
+            room,
+            capacity: parseInt(capacity) || 0,
+            enrolled: parseInt(enrolled) || 0,
+            prerequisites: prerequisites || "None"
+          };
+
+          items.push(newCourse);
+          fs.writeFile(itemsPath, JSON.stringify(items, null, 2), (err) => {
+            if (err) {
+              console.log("Warning: Could not update items.json");
+            }
+            res.status(201).json({ success: true, course: newCourse });
+          });
+        });
+      }
+    );
+  });
+});
+
 module.exports = router;

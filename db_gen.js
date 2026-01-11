@@ -46,6 +46,18 @@ db.serialize(()=>{
     db.run(`INSERT INTO Instructors(name,email) VALUES(?,?)`,["Artur Jaxygaliyev","artur@university.edu"])
     db.run(`INSERT INTO Instructors(name,email) VALUES(?,?)`,["Alikhan Nurzhan","alikhan@university.edu"])
     db.run(`INSERT INTO Instructors(name,email) VALUES(?,?)`,["Nursultan Beisenbek","nursultan@university.edu"])
+    
+    db.run(`CREATE TABLE IF NOT EXISTS Students(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT,
+        password TEXT)`
+    )
+    db.run(`INSERT INTO Students(name,email,password) VALUES(?,?,?)`,["Aiqyn","aiqyn@university.edu","12345678"])
+    db.run(`INSERT INTO Students(name,email,password) VALUES(?,?,?)`,["Berdibek","berdibek@university.edu","qwerty"])
+    db.run(`INSERT INTO Students(name,email,password) VALUES(?,?,?)`,["Alih","alih@university.edu","password"])
+    db.run(`INSERT INTO Students(name,email,password) VALUES(?,?,?)`,["Damir","damir@university.edu","letmein"])
+
     db.run(`CREATE TABLE IF NOT EXISTS Courses(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -53,6 +65,8 @@ db.serialize(()=>{
         credits INTEGER,
         description TEXT,
         instructor_id INTEGER,
+        schedule TEXT,        
+        room TEXT,
         capacity INTEGER,
         enrolled INTEGER,
         prerequisites TEXT,
