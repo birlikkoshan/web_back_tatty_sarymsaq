@@ -1,40 +1,22 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const sqlite3 = require("sqlite3");
 
-const db = new sqlite3.Database('database.db');
 const router = express.Router();
 
 // GET /courses - Render courses page with search and course cards
 router.get("/courses", (req, res) => {
   const q = (req.query.q || "").toLowerCase();
 
-  // SQL query to get courses with instructor info
-  let sql = `
-    SELECT 
-      c.id, 
-      c.title, 
-      c.code, 
-      c.credits, 
-      c.description, 
-      c.capacity, 
-      c.enrolled, 
-      c.prerequisites,
-      i.name as instructor,
-      i.email
-    FROM Courses c
-    LEFT JOIN Instructors i ON c.instructor_id = i.id
-    ORDER BY c.id ASC
-  `;
-
-  db.serialize(() => {
-    db.all(sql, (err, items) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).send("Error loading courses");
+  // Fetch courses from API endpoint
+  fetch('http://localhost:3000/api/courses')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch courses');
       }
-
+      return response.json();
+    })
+    .then(items => {
       // Filter by search query if provided
       let filteredItems = items || [];
       if (q) {
@@ -42,7 +24,6 @@ router.get("/courses", (req, res) => {
           const searchText = (
             it.title + " " + 
             (it.code || "") + " " + 
-            (it.instructor || "") + " " + 
             (it.description || "")
           ).toLowerCase();
           return searchText.includes(q);
@@ -72,7 +53,10 @@ router.get("/courses", (req, res) => {
                 <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%;"></div></div>
               </div>
             </div>
-            <div class="course-card-footer"><a class="btn btn-primary" href="/courses/${it.id}">View & Enroll</a></div>
+            <div class="course-card-footer">
+              <a class="btn btn-primary" href="/courses/${it.id}">View & Enroll</a>
+              <button class="btn btn-delete" onclick="deleteCourse(${it.id})">Delete Course</button>
+            </div>  
           </div>
         `;
       })
@@ -92,8 +76,11 @@ router.get("/courses", (req, res) => {
 
         res.send(html);
       });
+    })
+    .catch(error => {
+      console.error("Error fetching courses:", error);
+      res.status(500).send("Error loading courses");
     });
-  });
 });
 
 module.exports = router;

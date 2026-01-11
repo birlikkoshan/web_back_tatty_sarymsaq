@@ -64,25 +64,23 @@ db.serialize(()=>{
         code TEXT NOT NULL,
         credits INTEGER,
         description TEXT,
-        instructor_id INTEGER,
+        instructor TEXT,
         schedule TEXT,        
         room TEXT,
         capacity INTEGER,
         enrolled INTEGER,
-        prerequisites TEXT,
-        FOREIGN KEY(instructor_id) REFERENCES Instructor(id))`)
+        prerequisites TEXT)`)
     readItems(insertCourse)
 })
 
-db.serialize(()=>{
-    db.run(`UPDATE Courses SET instructor_id = 1 WHERE id = 1`)
-    db.run(`UPDATE Courses SET instructor_id = 2 WHERE id = 2`)
-    db.run(`UPDATE Courses SET instructor_id = 3 WHERE id = 3`)
-    db.run(`UPDATE Courses SET instructor_id = 4 WHERE id = 4`)
-    db.run(`UPDATE Courses SET instructor_id = 1 WHERE id = 5`)
-})
+// db.serialize(()=>{
+//     db.run(`UPDATE Courses SET instructor_id = 1 WHERE id = 1`)
+//     db.run(`UPDATE Courses SET instructor_id = 2 WHERE id = 2`)
+//     db.run(`UPDATE Courses SET instructor_id = 3 WHERE id = 3`)
+//     db.run(`UPDATE Courses SET instructor_id = 4 WHERE id = 4`)
+//     db.run(`UPDATE Courses SET instructor_id = 1 WHERE id = 5`)
+// })
 
 
 
-
-
+module.exports = db;

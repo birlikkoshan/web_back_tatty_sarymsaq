@@ -20,7 +20,6 @@
                     <a href="/courses">Courses</a>
                     <a href="/contact">Contact</a>
                     <a href="/login">Login</a>
-                    <a href="/api/info">/api/info</a>
             </nav>
         </div>
     </header>
@@ -34,5 +33,44 @@
     <footer class="footer">
         <div class="footer-container">&copy; 2025 Student Management System</div>
     </footer>
+
+    <script>
+        function enrollCourse(courseId, capacity, enrolled) {
+            // Check if course is full
+            if (enrolled >= capacity) {
+                alert('This course is full. No more spots available.');
+                return;
+            }
+
+            // Prepare update data
+            const updatedData = {
+                enrolled: enrolled + 1
+            };
+
+            // Send PUT request to update enrollment
+            fetch(`/api/courses/${courseId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to enroll');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('Successfully enrolled in the course!');
+                // Reload page to show updated enrollment
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error enrolling in course: ' + error.message);
+            });
+        }
+    </script>
 </body>
 </html>

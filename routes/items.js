@@ -1,9 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const sqlite3 = require("sqlite3");
 
-const db = new sqlite3.Database('database.db');
 const router = express.Router();
 
 // Helper function to calculate course stats
@@ -83,7 +81,7 @@ function generateCourseInfo(item, stats) {
     </div>
 
     <div class="course-detail-footer">
-      <button class="btn btn-primary">Enroll Now</button>
+      <button class="btn btn-primary" onclick="enrollCourse(${item.id}, ${item.capacity}, ${item.enrolled})">Enroll Now</button>
       <a href="/courses" class="btn btn-secondary">Back to Courses</a>
     </div>
   `;
@@ -98,42 +96,15 @@ router.get("/courses/:id", (req, res) => {
   fs.access(candidate, fs.constants.R_OK, (err) => {
     if (!err) return res.sendFile(candidate);
 
-    // Load from database if static file doesn't exist
-    const sql = `
-      SELECT 
-        c.id, 
-        c.title, 
-        c.code, 
-        c.credits, 
-        c.description, 
-        c.capacity, 
-        c.enrolled, 
-        c.prerequisites,
-        i.name as instructor,
-        i.email,
-        i.id as instructor_id
-      FROM Courses c
-      LEFT JOIN Instructors i ON c.instructor_id = i.id
-      WHERE c.id = ?
-    `;
-
-    db.serialize(() => {
-      db.get(sql, [id], (err, item) => {
-        if (err) {
-          console.error("Error reading from database:", err);
-          return res.status(500).send("Error loading courses");
+    // Load from API if static file doesn't exist
+    fetch(`http://localhost:3000/api/courses/${id}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Course not found');
         }
-
-        if (!item) {
-          return res.status(404).send(`
-            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
-              <h2>Course Not Found</h2>
-              <p>Course with ID ${id} does not exist.</p>
-              <p><a href="/courses">Back to Courses</a></p>
-            </div>
-          `);
-        }
-
+        return response.json();
+      })
+      .then(item => {
         // Calculate stats
         const stats = calculateStats(item);
 
@@ -149,8 +120,17 @@ router.get("/courses/:id", (req, res) => {
           const html = template.replace(/{{COURSE_INFO}}/g, courseInfo);
           res.send(html);
         });
+      })
+      .catch(error => {
+        console.error("Error fetching course:", error);
+        return res.status(404).send(`
+          <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
+            <h2>Course Not Found</h2>
+            <p>Course with ID ${id} does not exist.</p>
+            <p><a href="/courses">Back to Courses</a></p>
+          </div>
+        `);
       });
-    });
   });
 });
 

@@ -14,12 +14,11 @@
     <div class="container header-inner">
       <div class="logo">StudentMS</div>
       <nav class="nav">
-        <a href="/">Home</a>
-        <a href="/about">About</a>
-        <a href="/courses">Courses</a>
-        <a href="/contact">Contact</a>
-        <a href="/api/info">/api/info</a>
-
+     <a class="choosed-link" href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/courses">Courses</a>
+      <a href="/contact">Contact</a>
+      <a href="/login">Login</a>
       </nav>
     </div>
   </header>
@@ -84,38 +83,10 @@
           <label for="description">Description</label>
           <textarea id="description" name="description"></textarea>
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="instructor">Instructor</label>
-            <input type="text" id="instructor" name="instructor">
-          </div>
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="schedule">Schedule</label>
-          <input type="text" id="schedule" name="schedule" placeholder="e.g., Mon & Wed 10:00-11:30 AM">
-        </div>
-
-        <div class="form-group">
-          <label for="room">Room</label>
-          <input type="text" id="room" name="room" placeholder="e.g., 101 Building">
-        </div>
-
-        <div class="form-row">
           <div class="form-group">
             <label for="enrolled">Enrolled</label>
             <input type="number" id="enrolled" name="enrolled" min="0" value="0">
           </div>
-          <div class="form-group">
-            <label for="prerequisites">Prerequisites</label>
-            <input type="text" id="prerequisites" name="prerequisites" placeholder="None">
-          </div>
-        </div>
 
         <div class="modal-footer">
           <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
@@ -144,7 +115,7 @@
       alertMessage.classList.remove('show');
     });
 
-    // Close modal
+    // Close modal  
     const closeModalWindow = () => {
       modal.classList.remove('show');
       alertMessage.classList.remove('show');
@@ -170,12 +141,7 @@
         credits: document.getElementById('credits').value,
         capacity: document.getElementById('capacity').value,
         description: document.getElementById('description').value,
-        instructor: document.getElementById('instructor').value,
-        email: document.getElementById('email').value,
-        schedule: document.getElementById('schedule').value,
-        room: document.getElementById('room').value,
-        enrolled: document.getElementById('enrolled').value,
-        prerequisites: document.getElementById('prerequisites').value
+        enrolled: document.getElementById('enrolled').value
       };
 
       try {
@@ -206,6 +172,30 @@
     function showAlert(message, type) {
       alertMessage.textContent = message;
       alertMessage.className = `alert show alert-${type}`;
+    }
+
+    // Delete course function
+    function deleteCourse(courseId) {
+      if (confirm('Are you sure you want to delete this course?')) {
+        fetch(`/api/courses/${courseId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            alert('Course deleted successfully!');
+            location.reload();
+          } else {
+            alert('Error deleting course');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error deleting course: ' + error.message);
+        });
+      }
     }
   </script>
 </body>

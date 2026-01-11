@@ -1,22 +1,22 @@
 const express = require("express");
 const path = require("path");
 
-const sqlite3 = require('sqlite3')
-const db = new sqlite3.Database('database.db')
-db.run(`CREATE TABLE IF NOT EXISTS Courses(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    code TEXT NOT NULL,
-    credits INTEGER,
-    description TEXT,
-    instructor_id INTEGER,
-    capacity INTEGER,
-    enrolled INTEGER,
-    prerequisites TEXT)`)
-db.run(`CREATE TABLE IF NOT EXISTS Instructors(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT)`)
+// const sqlite3 = require('sqlite3')
+// const db = new sqlite3.Database('database.db')
+// db.run(`CREATE TABLE IF NOT EXISTS Courses(
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     title TEXT NOT NULL,
+//     code TEXT NOT NULL,
+//     credits INTEGER,
+//     description TEXT,
+//     instructor_id INTEGER,
+//     capacity INTEGER,
+//     enrolled INTEGER,
+//     prerequisites TEXT)`)
+// db.run(`CREATE TABLE IF NOT EXISTS Instructors(
+//         id INTEGER PRIMARY KEY AUTOINCREMENT,
+//         name TEXT NOT NULL,
+//         email TEXT)`)
 
 // Import route modules
 const pagesRoutes = require("./routes/pages");
@@ -24,7 +24,8 @@ const coursesRoutes = require("./routes/courses");
 const itemsRoutes = require("./routes/items");
 const contactRoutes = require("./routes/contact");
 const searchRoutes = require("./routes/search");
-const apiRoutes = require("./routes/api");
+const apiRoutes = require("./routes/apiCourses");
+// const apiRoutes = require("./routes/api");
 
 const app = express();
 
