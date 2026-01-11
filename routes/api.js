@@ -1,6 +1,9 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const sqlite3 = require("sqlite3")
+
+const db = new sqlite3.Database('database.db')
 
 const router = express.Router();
 
@@ -28,5 +31,32 @@ router.get("/api/info", (req, res) => {
     }
   });
 });
+
+router.get("/api/courses", (req,res) => {
+  db.serialize(()=>{
+    db.all('SELECT id, title, code, credits, description FROM Courses ORDER BY id ASC', function(err,rows){     
+      if(err){
+        res.status(500).send("Error encountered while displaying");
+        console.log(err)
+      }
+      res.status(200).json(rows);
+    });
+  });
+})
+
+router.delete("/api/courses/:id", (req,res) => {
+  if (!Number.isInteger(req.params.id)){
+    res.status(400).end("Invalid route parameter")
+  }
+  db.serialize(() => {
+    db.run(`DELETE FROM Courses WHERE id = ?`,req.params.id,(err) => {
+      if(err){
+        res.status(500).send(err);
+      } else {
+        res.status(200).end();
+      }
+    })
+  })
+})
 
 module.exports = router;
