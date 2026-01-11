@@ -15,6 +15,7 @@ const app = express();
 app.use(express.static("public"));
 app.use(express.static("views"));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Logger middleware
 app.use((req, res, next) => {
@@ -23,16 +24,22 @@ app.use((req, res, next) => {
 });
 
 // Mount route modules
-app.use(pagesRoutes);           // /, /about, /contact
+app.use(pagesRoutes); // /, /about, /contact
 app.use(coursesRoutes); // /courses, /api/courses
-app.use(itemsRoutes);           // /item/:id
-app.use(contactRoutes);         // POST /contact
-app.use(searchRoutes);          // /search
-app.use(apiRoutes);             // /api/info
+app.use(itemsRoutes); // /item/:id
+app.use(contactRoutes); // POST /contact
+app.use(searchRoutes); // /search
+app.use(apiRoutes); // /api/info
+
+const apiCoursesRoutes = require("./routes/apiCourses");
+app.use(apiCoursesRoutes);
 
 // 404 Not Found handler (must be last)
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "views/not_found.html"));
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({ error: "Not Found" });
+  }
+  return res.status(404).sendFile(path.join(__dirname, "views/not_found.html"));
 });
 
 // Start server
