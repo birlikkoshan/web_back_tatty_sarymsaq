@@ -1,6 +1,9 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const sqlite3 = require("sqlite3")
+
+const db = new sqlite3.Database('database.db')
 
 const router = express.Router();
 
@@ -28,5 +31,17 @@ router.get("/api/info", (req, res) => {
     }
   });
 });
+
+router.delete("/api/courses/:id", (req,res) => {
+  db.serialize(() => {
+    db.run(`DELETE FROM Courses WHERE id = ?`,req.params.id,(err) => {
+      if(err){
+        res.status(500).send(err);
+      } else {
+        res.status(200).end();
+      }
+    })
+  })
+})
 
 module.exports = router;
