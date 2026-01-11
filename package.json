@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/birlikkoshan/web_back_tatty_sarymsaq#readme",
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "sqlite3": "^5.1.7"
   }
 }
