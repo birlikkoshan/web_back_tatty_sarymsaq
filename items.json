@@ -73,5 +73,16 @@
     "capacity": 30,
     "enrolled": 22,
     "prerequisites": "Introduction to Programming"
+  },
+  {
+    "id": 6,
+    "title": "Introduction to Programming67",
+    "type": "course",
+    "code": "CS67",
+    "credits": 5,
+    "description": "Learn programming fundamentals using Python, problem-solving, and algorithms",
+    "capacity": 0,
+    "enrolled": 0,
+    "prerequisites": "None"
   }
 ]
