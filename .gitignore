@@ -24,4 +24,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+database.sqlite
+database.db
 submissions.json

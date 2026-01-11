@@ -1,23 +1,6 @@
 const express = require("express");
 const path = require("path");
 
-// const sqlite3 = require('sqlite3')
-// const db = new sqlite3.Database('database.db')
-// db.run(`CREATE TABLE IF NOT EXISTS Courses(
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     title TEXT NOT NULL,
-//     code TEXT NOT NULL,
-//     credits INTEGER,
-//     description TEXT,
-//     instructor_id INTEGER,
-//     capacity INTEGER,
-//     enrolled INTEGER,
-//     prerequisites TEXT)`)
-// db.run(`CREATE TABLE IF NOT EXISTS Instructors(
-//         id INTEGER PRIMARY KEY AUTOINCREMENT,
-//         name TEXT NOT NULL,
-//         email TEXT)`)
-
 // Import route modules
 const pagesRoutes = require("./routes/pages");
 const coursesRoutes = require("./routes/courses");
@@ -49,7 +32,7 @@ app.use(contactRoutes); // POST /contact
 app.use(searchRoutes); // /search
 app.use(apiRoutes); // /api/info
 
-const apiCoursesRoutes = require("./routes/apiCourses");
+const apiCoursesRoutes = require("./routes/api");
 app.use(apiCoursesRoutes);
 
 // 404 Not Found handler (must be last)
@@ -65,4 +48,3 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
