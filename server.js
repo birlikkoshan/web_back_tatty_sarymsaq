@@ -32,8 +32,6 @@ app.use(contactRoutes); // POST /contact
 app.use(searchRoutes); // /search
 app.use(apiRoutes); // /api/info
 
-const apiCoursesRoutes = require("./routes/api");
-app.use(apiCoursesRoutes);
 
 // 404 Not Found handler (must be last)
 app.use((req, res) => {
