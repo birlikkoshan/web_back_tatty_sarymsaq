@@ -66,6 +66,7 @@ nav {
   border-radius: 8px;
   text-decoration: none;
   font-weight: 500;
+  
 }
 
 .btn-delete{
@@ -356,6 +357,7 @@ footer {
 .btn-primary {
   background: #2563eb;
   color: #fff;
+  cursor: pointer;
 }
 
 .btn-secondary {
@@ -368,6 +370,7 @@ footer {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 25px;
+  margin-top: 40px;
   margin-bottom: 50px;
 }
 
@@ -590,3 +593,27 @@ footer {
       color: #991b1b;
       border: 1px solid #fecaca;
     }
+
+  .filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  }
+
+  .search-input {
+    padding: 10px 12px;
+    width: 400px;
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-family: Poppins, sans-serif;
+  }
+
+  .filter-select {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-family: Poppins, sans-serif;
+    cursor: pointer;
+  }
