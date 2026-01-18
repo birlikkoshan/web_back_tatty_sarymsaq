@@ -48,7 +48,7 @@ function parseFields(fieldsRaw) {
 
 function buildFilter(query) {
   const filter = {};
-
+  
   if (typeof query.type === "string" && query.type.trim() !== "") {
     filter.type = query.type.trim();
   }

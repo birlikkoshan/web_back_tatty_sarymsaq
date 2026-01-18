@@ -24,35 +24,13 @@
   </header>
 
   <main class="container">
-    <h1 style="margin:18px 0">Available Courses</h1>
+    <h1>Available Courses</h1>
     
-    <form method="get" action="/courses" class="filters">
-  <input
-        name="q"
-        placeholder="Search courses by title, code, instructor..."
-        value="{{SEARCH_QUERY}}"
-        class="search-input">
-
-  <button class="btn btn-primary" type="submit">Search</button>
-
-  <select id="categoryFilter" class="filter-select">
-    <option value="all">All courses</option>
-    <option value="frontend">Frontend</option>
-    <option value="backend">Backend</option>
-    <option value="backend">Math</option>
-    <option value="backend">Media</option>
-  </select>
-
-  <a href="/courses" class="btn btn-secondary">Clear</a>
-</form>
-
-<div id="courses"></div>
-
-
-    <div class="courses-grid">
+    <div id="courses" class="courses-grid">
       {{COURSES_LIST}}
     </div>
-    <div style="margin: 20px 0; text-align: center;">
+    
+    <div class="add-course-container">
       <button class="btn btn-primary" id="addCourseBtn">Add New Course</button>
     </div>
 

@@ -8,7 +8,6 @@ const coursesPageRoutes = require("./routes/courses");
 const courseApiRoutes = require("./routes/apiCourses");
 const itemsRoutes = require("./routes/items");
 const contactRoutes = require("./routes/contact");
-const searchRoutes = require("./routes/search");
 
 const app = express();
 
@@ -26,14 +25,12 @@ app.use(pagesRoutes);
 
 app.use(coursesPageRoutes);
 app.use(itemsRoutes);
-// API (MongoDB)
-app.use("/api/course", courseApiRoutes);
+
+// app.use("/api/course", courseApiRoutes);
 app.use("/api/courses", courseApiRoutes);
 
 app.use(contactRoutes); // POST /contact
-app.use(searchRoutes); // /search
 
-// 404 Not Found handler
 app.use((req, res) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ error: "Not Found" });
@@ -41,7 +38,6 @@ app.use((req, res) => {
   return res.status(404).sendFile(path.join(__dirname, "views/not_found.html"));
 });
 
-// Start server
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

@@ -54,8 +54,8 @@ router.get("/courses", (req, res) => {
               </div>
             </div>
             <div class="course-card-footer">
-              <a class="btn btn-primary" href="/courses/${it.id}">View & Enroll</a>
-              <button class="btn btn-delete" onclick="deleteCourse(${it.id})">Delete Course</button>
+              <a class="btn btn-primary" href="/courses/${it._id}">View & Enroll</a>
+              <button class="btn btn-delete" onclick="deleteCourse(${it._id})">Delete Course</button>
             </div>  
           </div>
         `;

@@ -1,6 +1,5 @@
 const express = require("express");
-const fs = require("fs");
-const path = require("path");
+const { getCollection } = require("../database/mongo");
 
 const router = express.Router();
 
@@ -27,7 +26,7 @@ function validateContactForm(data) {
 }
 
 // POST /contact - Handle contact form submissions
-router.post("/contact", (req, res) => {
+router.post("/contact", async (req, res) => {
   // Validate form data
   const validationErrors = validateContactForm(req.body);
 
@@ -38,40 +37,27 @@ router.post("/contact", (req, res) => {
     });
   }
 
-  const filePath = path.join(__dirname, "../submissions.json");
+  try {
+    const submissionsCollection = await getCollection("submissions");
 
-  const newEntry = {
-    name: req.body.name.trim(),
-    email: req.body.email.trim(),
-    message: req.body.message.trim(),
-    time: new Date().toISOString(),
-  };
+    const newEntry = {
+      name: req.body.name.trim(),
+      email: req.body.email.trim(),
+      message: req.body.message.trim(),
+      time: new Date().toISOString(),
+    };
 
-  fs.readFile(filePath, "utf8", (err, data) => {
-    let submissions = [];
+    const result = await submissionsCollection.insertOne(newEntry);
 
-    if (!err && data) {
-      try {
-        submissions = JSON.parse(data);
-      } catch (e) {
-        console.error("Error parsing submissions.json:", e);
-      }
-    }
-
-    submissions.push(newEntry);
-
-    fs.writeFile(filePath, JSON.stringify(submissions, null, 2), (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: "Error saving submission" });
-      }
-
-      res.status(201).json({
-        success: true,
-        message: `Thanks, ${newEntry.name}! Your message has been received.`,
-      });
+    res.status(201).json({
+      success: true,
+      message: `Thanks, ${newEntry.name}! Your message has been received.`,
+      id: result.insertedId,
     });
-  });
+  } catch (err) {
+    console.error("Error saving submission:", err);
+    return res.status(500).json({ error: "Error saving submission" });
+  }
 });
 
 module.exports = router;
