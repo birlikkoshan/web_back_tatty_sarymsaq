@@ -19,7 +19,8 @@
   },
   "homepage": "https://github.com/birlikkoshan/web_back_tatty_sarymsaq#readme",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "sqlite3": "^5.1.7"
+    "mongodb": "^7.0.0"
   }
 }

@@ -1,158 +1,401 @@
 const express = require("express");
-const db = require("../db_gen.js");
+const { ObjectId } = require("mongodb");
+const { getCollection } = require("../database/mongo");
 
 const router = express.Router();
+const COLLECTION = "courses";
 
-function isValidId(id) {
-  return /^\d+$/.test(String(id));
+// ---------- helpers ----------
+
+function isValidObjectId(id) {
+  return ObjectId.isValid(id);
 }
 
-function validateCourseBody(body) {
-  const errors = [];
-  if (!body.title || String(body.title).trim() === "")
-    errors.push("title is required");
-  if (!body.description || String(body.description).trim() === "")
-    errors.push("description is required");
-  return errors;
+function toPublic(doc) {
+  if (!doc) return doc;
+  const { _id, ...rest } = doc;
+  return { id: String(_id), ...rest };
 }
 
-// GET /api/courses - все записи (id ASC)
-router.get("/api/courses", (req, res) => {
-  db.all("SELECT * FROM Courses ORDER BY id ASC", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    return res.status(200).json(rows);
-  });
-});
+function parseSort(sortRaw) {
+  if (!sortRaw || typeof sortRaw !== "string") return null;
 
-// GET /api/courses/:id - одна запись
-router.get("/api/courses/:id", (req, res) => {
-  const { id } = req.params;
-  if (!isValidId(id)) return res.status(400).json({ error: "Invalid id" }); // требование :contentReference[oaicite:3]{index=3}
+  const field = sortRaw.startsWith("-") ? sortRaw.slice(1) : sortRaw;
+  if (!field) return null;
 
-  db.get("SELECT * FROM Courses WHERE id = ?", [id], (err, row) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    if (!row) return res.status(404).json({ error: "Course not found" });
-    return res.status(200).json(row);
-  });
-});
+  const dir = sortRaw.startsWith("-") ? -1 : 1;
+  return { [field]: dir };
+}
 
-// POST /api/courses - создать
-router.post("/api/courses", (req, res) => {
-  const errors = validateCourseBody(req.body);
-  if (errors.length) return res.status(400).json({ error: errors.join(", ") }); // требование :contentReference[oaicite:4]{index=4}
+function parseFields(fieldsRaw) {
+  // fields=title,credits,code => projection
+  if (!fieldsRaw || typeof fieldsRaw !== "string") return null;
 
-  const {
-    title,
-    description,
-    code = null,
-    credits = 0,
-    capacity = 0,
-    enrolled = 0,
-  } = req.body;
+  const parts = fieldsRaw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-  const sql = `
-    INSERT INTO Courses (title, description, code, credits, capacity, enrolled)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
+  if (parts.length === 0) return null;
 
-  db.run(
-    sql,
-    [title, description, code, credits, capacity, enrolled],
-    function (err) {
-      if (err) return res.status(500).json({ error: "Database error" });
+  const projection = {};
+  for (const f of parts) projection[f] = 1;
 
-      // Вернём созданный объект
-      db.get(
-        "SELECT * FROM Courses WHERE id = ?",
-        [this.lastID],
-        (err2, row) => {
-          if (err2) return res.status(500).json({ error: "Database error" });
-          return res.status(201).json(row); // 201 Created :contentReference[oaicite:5]{index=5}
-        }
-      );
-    }
-  );
-});
+  // keep _id so we can output id
+  projection._id = 1;
+  return projection;
+}
 
-// PUT /api/courses/:id - обновить (или только увеличить enrolled)
-router.put("/api/courses/:id", (req, res) => {
-  const { id } = req.params;
-  if (!isValidId(id)) return res.status(400).json({ error: "Invalid id" });
+function buildFilter(query) {
+  const filter = {};
 
-  // Check if this is a partial update (only enrolled field)
-  const isPartialUpdate = Object.keys(req.body).length === 1 && req.body.enrolled !== undefined;
-
-  // Only validate title and description if doing a full update
-  if (!isPartialUpdate) {
-    const errors = validateCourseBody(req.body);
-    if (errors.length) return res.status(400).json({ error: errors.join(", ") });
+  if (typeof query.type === "string" && query.type.trim() !== "") {
+    filter.type = query.type.trim();
   }
 
-  // Сначала проверим существование
-  db.get("SELECT * FROM Courses WHERE id = ?", [id], (err, row) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    if (!row) return res.status(404).json({ error: "Course not found" });
+  if (typeof query.title === "string" && query.title.trim() !== "") {
+    filter.title = { $regex: query.title.trim(), $options: "i" };
+  }
 
-    // Prepare update data
-    let updateData;
-    
-    if (isPartialUpdate) {
-      // Partial update: only update enrolled field
-      updateData = {
-        title: row.title,
-        description: row.description,
-        code: row.code,
-        credits: row.credits,
-        capacity: row.capacity,
-        enrolled: req.body.enrolled
-      };
+  if (typeof query.code === "string" && query.code.trim() !== "") {
+    filter.code = { $regex: query.code.trim(), $options: "i" };
+  }
+
+  if (typeof query.instructor === "string" && query.instructor.trim() !== "") {
+    filter.instructor = { $regex: query.instructor.trim(), $options: "i" };
+  }
+
+  const minCredits = Number(query.minCredits);
+  const maxCredits = Number(query.maxCredits);
+  if (!Number.isNaN(minCredits) || !Number.isNaN(maxCredits)) {
+    filter.credits = {};
+    if (!Number.isNaN(minCredits)) filter.credits.$gte = minCredits;
+    if (!Number.isNaN(maxCredits)) filter.credits.$lte = maxCredits;
+  }
+
+  const minCapacity = Number(query.minCapacity);
+  const maxCapacity = Number(query.maxCapacity);
+  if (!Number.isNaN(minCapacity) || !Number.isNaN(maxCapacity)) {
+    filter.capacity = {};
+    if (!Number.isNaN(minCapacity)) filter.capacity.$gte = minCapacity;
+    if (!Number.isNaN(maxCapacity)) filter.capacity.$lte = maxCapacity;
+  }
+
+  if (query.enrolled !== undefined) {
+    const enrolled = Number(query.enrolled);
+    if (!Number.isNaN(enrolled)) filter.enrolled = enrolled;
+  }
+
+  return filter;
+}
+
+function validateCreateBody(body) {
+  const errors = [];
+
+  // required (по твоей форме)
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  const code = typeof body.code === "string" ? body.code.trim() : "";
+  const description =
+    typeof body.description === "string" ? body.description.trim() : "";
+
+  const credits = Number(body.credits);
+  const capacity = Number(body.capacity);
+  const enrolled = body.enrolled === undefined ? 0 : Number(body.enrolled);
+
+  if (!title) errors.push("title is required");
+  if (!code) errors.push("code is required");
+  if (!description) errors.push("description is required");
+
+  if (Number.isNaN(credits) || credits <= 0)
+    errors.push("credits must be a positive number");
+  if (Number.isNaN(capacity) || capacity <= 0)
+    errors.push("capacity must be a positive number");
+  if (Number.isNaN(enrolled) || enrolled < 0)
+    errors.push("enrolled must be a non-negative number");
+
+  if (
+    !Number.isNaN(enrolled) &&
+    !Number.isNaN(capacity) &&
+    enrolled > capacity
+  ) {
+    errors.push("enrolled cannot be greater than capacity");
+  }
+
+  // optional (из твоих данных)
+  const type = typeof body.type === "string" ? body.type.trim() : "course";
+  const instructor =
+    typeof body.instructor === "string" ? body.instructor.trim() : "";
+  const email = typeof body.email === "string" ? body.email.trim() : "";
+  const schedule =
+    typeof body.schedule === "string" ? body.schedule.trim() : "";
+  const room = typeof body.room === "string" ? body.room.trim() : "";
+  const prerequisites =
+    typeof body.prerequisites === "string" ? body.prerequisites.trim() : "";
+
+  // мягкая валидация email, только если передали
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errors.push("email must be a valid email");
+  }
+
+  if (errors.length > 0) return { ok: false, errors };
+
+  return {
+    ok: true,
+    doc: {
+      type, // "course"
+      title,
+      code,
+      credits,
+      capacity,
+      description,
+      enrolled,
+      instructor,
+      email,
+      schedule,
+      room,
+      prerequisites,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  };
+}
+
+function validateUpdateBody(body) {
+  // PUT: частичный апдейт
+  const update = {};
+  const errors = [];
+
+  if (body.type !== undefined) {
+    const v = typeof body.type === "string" ? body.type.trim() : "";
+    if (!v) errors.push("type cannot be empty");
+    else update.type = v;
+  }
+
+  if (body.title !== undefined) {
+    const v = typeof body.title === "string" ? body.title.trim() : "";
+    if (!v) errors.push("title cannot be empty");
+    else update.title = v;
+  }
+
+  if (body.code !== undefined) {
+    const v = typeof body.code === "string" ? body.code.trim() : "";
+    if (!v) errors.push("code cannot be empty");
+    else update.code = v;
+  }
+
+  if (body.description !== undefined) {
+    const v =
+      typeof body.description === "string" ? body.description.trim() : "";
+    if (!v) errors.push("description cannot be empty");
+    else update.description = v;
+  }
+
+  if (body.credits !== undefined) {
+    const v = Number(body.credits);
+    if (Number.isNaN(v) || v <= 0)
+      errors.push("credits must be a positive number");
+    else update.credits = v;
+  }
+
+  if (body.capacity !== undefined) {
+    const v = Number(body.capacity);
+    if (Number.isNaN(v) || v <= 0)
+      errors.push("capacity must be a positive number");
+    else update.capacity = v;
+  }
+
+  if (body.enrolled !== undefined) {
+    const v = Number(body.enrolled);
+    if (Number.isNaN(v) || v < 0)
+      errors.push("enrolled must be a non-negative number");
+    else update.enrolled = v;
+  }
+
+  if (body.instructor !== undefined) {
+    const v = typeof body.instructor === "string" ? body.instructor.trim() : "";
+    if (!v) errors.push("instructor cannot be empty");
+    else update.instructor = v;
+  }
+
+  if (body.email !== undefined) {
+    const v = typeof body.email === "string" ? body.email.trim() : "";
+    if (v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+      errors.push("email must be a valid email");
     } else {
-      // Full update: all fields
-      updateData = {
-        title: req.body.title,
-        description: req.body.description,
-        code: req.body.code || null,
-        credits: req.body.credits || 0,
-        capacity: req.body.capacity || 0,
-        enrolled: req.body.enrolled || 0
-      };
+      update.email = v;
     }
+  }
 
-    const sql = `
-      UPDATE Courses
-      SET title = ?, description = ?, code = ?, credits = ?, capacity = ?, enrolled = ?
-      WHERE id = ?
-    `;
+  if (body.schedule !== undefined) {
+    const v = typeof body.schedule === "string" ? body.schedule.trim() : "";
+    if (!v) errors.push("schedule cannot be empty");
+    else update.schedule = v;
+  }
 
-    db.run(
-      sql,
-      [updateData.title, updateData.description, updateData.code, updateData.credits, updateData.capacity, updateData.enrolled, id],
-      function (err2) {
-        if (err2) return res.status(500).json({ error: "Database error" });
+  if (body.room !== undefined) {
+    const v = typeof body.room === "string" ? body.room.trim() : "";
+    if (!v) errors.push("room cannot be empty");
+    else update.room = v;
+  }
 
-        db.get("SELECT * FROM Courses WHERE id = ?", [id], (err3, updated) => {
-          if (err3) return res.status(500).json({ error: "Database error" });
-          return res.status(200).json(updated);
-        });
-      }
-    );
-  });
+  if (body.prerequisites !== undefined) {
+    const v =
+      typeof body.prerequisites === "string" ? body.prerequisites.trim() : "";
+    if (!v) errors.push("prerequisites cannot be empty");
+    else update.prerequisites = v;
+  }
+
+  if (errors.length > 0) return { ok: false, errors };
+  if (Object.keys(update).length === 0) {
+    return {
+      ok: false,
+      errors: ["at least one field must be provided for update"],
+    };
+  }
+
+  update.updatedAt = new Date();
+  return { ok: true, update };
+}
+
+// ---------- routes ----------
+
+// GET /api/course (and /api/courses): list with filter/sort/projection
+router.get("/", async (req, res) => {
+  try {
+    const col = await getCollection(COLLECTION);
+
+    const filter = buildFilter(req.query);
+    const sort = parseSort(req.query.sort);
+    const projection = parseFields(req.query.fields);
+
+    let cursor = col.find(filter);
+    if (sort) cursor = cursor.sort(sort);
+    if (projection) cursor = cursor.project(projection);
+
+    const docs = await cursor.toArray();
+    res.status(200).json(docs.map(toPublic));
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-// DELETE /api/courses/:id - удалить
-router.delete("/api/courses/:id", (req, res) => {
-  const { id } = req.params;
-  if (!isValidId(id)) return res.status(400).json({ error: "Invalid id" });
+// GET /api/course/:id
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id))
+      return res.status(400).json({ error: "Invalid id" });
 
-  db.get("SELECT id FROM Courses WHERE id = ?", [id], (err, row) => {
-    if (err) return res.status(500).json({ error: "Database error" });
-    if (!row) return res.status(404).json({ error: "Course not found" });
+    const col = await getCollection(COLLECTION);
+    const doc = await col.findOne({ _id: new ObjectId(id) });
 
-    db.run("DELETE FROM Courses WHERE id = ?", [id], function (err2) {
-      if (err2) return res.status(500).json({ error: "Database error" });
-      return res.status(200).json({ message: "Deleted" });
-    });
-  });
+    if (!doc) return res.status(404).json({ error: "Not Found" });
+    res.status(200).json(toPublic(doc));
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// POST /api/course
+router.post("/", async (req, res) => {
+  try {
+    const parsed = validateCreateBody(req.body);
+    if (!parsed.ok) {
+      return res
+        .status(400)
+        .json({ error: "Bad Request", details: parsed.errors });
+    }
+
+    const col = await getCollection(COLLECTION);
+    const result = await col.insertOne(parsed.doc);
+
+    const created = await col.findOne({ _id: result.insertedId });
+    res.status(201).json(toPublic(created));
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// PUT /api/course/:id
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id))
+      return res.status(400).json({ error: "Invalid id" });
+
+    const parsed = validateUpdateBody(req.body);
+    if (!parsed.ok) {
+      return res
+        .status(400)
+        .json({ error: "Bad Request", details: parsed.errors });
+    }
+
+    const col = await getCollection(COLLECTION);
+
+    // enforce enrolled <= capacity (using existing if not provided)
+    if (
+      parsed.update.enrolled !== undefined ||
+      parsed.update.capacity !== undefined
+    ) {
+      const existing = await col.findOne(
+        { _id: new ObjectId(id) },
+        { projection: { capacity: 1, enrolled: 1 } },
+      );
+      if (!existing) return res.status(404).json({ error: "Not Found" });
+
+      const capacity =
+        parsed.update.capacity !== undefined
+          ? parsed.update.capacity
+          : existing.capacity;
+      const enrolled =
+        parsed.update.enrolled !== undefined
+          ? parsed.update.enrolled
+          : existing.enrolled;
+
+      if (
+        capacity !== undefined &&
+        enrolled !== undefined &&
+        enrolled > capacity
+      ) {
+        return res.status(400).json({
+          error: "Bad Request",
+          details: ["enrolled cannot be greater than capacity"],
+        });
+      }
+    }
+
+    const result = await col.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: parsed.update },
+    );
+
+    if (result.matchedCount === 0)
+      return res.status(404).json({ error: "Not Found" });
+
+    const updated = await col.findOne({ _id: new ObjectId(id) });
+    res.status(200).json(toPublic(updated));
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// DELETE /api/course/:id
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id))
+      return res.status(400).json({ error: "Invalid id" });
+
+    const col = await getCollection(COLLECTION);
+    const result = await col.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0)
+      return res.status(404).json({ error: "Not Found" });
+
+    res.status(200).json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 module.exports = router;
