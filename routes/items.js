@@ -81,7 +81,7 @@ function generateCourseInfo(item, stats) {
     </div>
 
     <div class="course-detail-footer">
-      <button class="btn btn-primary" onclick="enrollCourse(${item.id}, ${item.capacity}, ${item.enrolled})">Enroll Now</button>
+      <button class="btn btn-primary" onclick="enrollCourse('${item.id}', ${item.capacity}, ${item.enrolled})">Enroll Now</button>
       <a href="/courses" class="btn btn-secondary">Back to Courses</a>
     </div>
   `;
@@ -115,7 +115,6 @@ router.get("/courses/:id", (req, res) => {
             console.error("Error reading enrollment template:", err);
             return res.status(500).send("Error loading course details");
           }
-
           const courseInfo = generateCourseInfo(item, stats);
           let html = template.replace(/{{COURSE_INFO}}/g, courseInfo);
           html = html.replace(/{{COURSE_TITLE}}/g, item.title);
