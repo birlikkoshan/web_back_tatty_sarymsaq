@@ -8,6 +8,130 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
+  <style>
+    .accordion-container {
+      margin-bottom: 30px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    
+    .accordion-header {
+      padding: 15px 20px;
+      background: #f5f5f5;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    
+    .accordion-header:hover {
+      background: #e8e8e8;
+    }
+    
+    .accordion-header.active {
+      background: #007bff;
+      color: white;
+      border-bottom: 1px solid #0056b3;
+    }
+    
+    .accordion-toggle {
+      font-size: 18px;
+      transition: transform 0.3s;
+    }
+    
+    .accordion-toggle.active {
+      transform: rotate(180deg);
+    }
+    
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      padding: 0 20px;
+    }
+    
+    .accordion-content.active {
+      max-height: 1000px;
+      padding: 20px;
+    }
+    
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .filter-group label {
+      font-weight: 500;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    
+    .filter-group input:focus,
+    .filter-group select:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+    
+    .range-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .button-group button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .btn-apply {
+      background: #007bff;
+      color: white;
+    }
+    
+    .btn-apply:hover {
+      background: #0056b3;
+    }
+    
+    .btn-clear {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .btn-clear:hover {
+      background: #5a6268;
+    }
+  </style>
 </head>
 <body>
   <header class="header">
@@ -25,6 +149,104 @@
 
   <main class="container">
     <h1>Available Courses</h1>
+    
+    <!-- Filter, Sort & Projection Accordion -->
+    <div class="accordion-container">
+      <div class="accordion-header" id="filterAccordion">
+        <span>🔍 Filter, Sort & Display Options</span>
+        <span class="accordion-toggle">▼</span>
+      </div>
+      <div class="accordion-content" id="filterContent">
+        <form id="filterForm">
+          <!-- Search Filters -->
+          <h3 style="margin-top: 0; margin-bottom: 15px;">Search Filters</h3>
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label for="searchTitle">Course Title</label>
+              <input type="text" id="searchTitle" placeholder="Search by title...">
+            </div>
+            <div class="filter-group">
+              <label for="searchCode">Course Code</label>
+              <input type="text" id="searchCode" placeholder="e.g., CS101...">
+            </div>
+            <div class="filter-group">
+              <label for="searchInstructor">Instructor</label>
+              <input type="text" id="searchInstructor" placeholder="Instructor name...">
+            </div>
+            <div class="filter-group">
+              <label for="filterType">Course Type</label>
+              <select id="filterType">
+                <option value="">All Types</option>
+                <option value="course">Course</option>
+                <option value="lab">Lab</option>
+                <option value="seminar">Seminar</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Range Filters -->
+          <h3 style="margin: 20px 0 15px 0;">Range Filters</h3>
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label>Credits Range</label>
+              <div class="range-inputs">
+                <input type="number" id="minCredits" placeholder="Min" min="0">
+                <input type="number" id="maxCredits" placeholder="Max" min="0">
+              </div>
+            </div>
+            <div class="filter-group">
+              <label>Capacity Range</label>
+              <div class="range-inputs">
+                <input type="number" id="minCapacity" placeholder="Min" min="0">
+                <input type="number" id="maxCapacity" placeholder="Max" min="0">
+              </div>
+            </div>
+            <div class="filter-group">
+              <label for="filterEnrolled">Enrolled Count</label>
+              <input type="number" id="filterEnrolled" placeholder="Exact number..." min="0">
+            </div>
+          </div>
+
+          <!-- Sort Options -->
+          <h3 style="margin: 20px 0 15px 0;">Sort Options</h3>
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label for="sortField">Sort By</label>
+              <select id="sortField">
+                <option value="">None</option>
+                <option value="title">Title</option>
+                <option value="code">Code</option>
+                <option value="credits">Credits</option>
+                <option value="capacity">Capacity</option>
+                <option value="enrolled">Enrolled</option>
+                <option value="createdAt">Created Date</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="sortDirection">Direction</label>
+              <select id="sortDirection">
+                <option value="">Ascending</option>
+                <option value="-">Descending</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Display Fields -->
+          <h3 style="margin: 20px 0 15px 0;">Display Fields</h3>
+          <div class="filter-group">
+            <label for="fieldsProjection">Select Fields (comma-separated)</label>
+            <input type="text" id="fieldsProjection" placeholder="e.g., title,code,credits,instructor" 
+                   value="title,code,credits,instructor,schedule,room,capacity,enrolled">
+          </div>
+
+          <!-- Buttons -->
+          <div class="button-group">
+            <button type="button" class="btn-apply" id="applyFiltersBtn">Apply Filters</button>
+            <button type="button" class="btn-clear" id="clearFiltersBtn">Clear Filters</button>
+          </div>
+        </form>
+      </div>
+    </div>
     
     <div id="courses" class="courses-grid">
       {{COURSES_LIST}}
@@ -90,6 +312,179 @@
   </footer>
 
   <script>
+    // ========== ACCORDION FUNCTIONALITY ==========
+    const filterAccordion = document.getElementById('filterAccordion');
+    const filterContent = document.getElementById('filterContent');
+    const accordionToggle = filterAccordion.querySelector('.accordion-toggle');
+
+    filterAccordion.addEventListener('click', () => {
+      filterAccordion.classList.toggle('active');
+      filterContent.classList.toggle('active');
+      accordionToggle.classList.toggle('active');
+    });
+
+    // ========== FILTER, SORT & PROJECTION FUNCTIONALITY ==========
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    const coursesContainer = document.getElementById('courses');
+
+    applyFiltersBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await loadFilteredCourses();
+    });
+
+    clearFiltersBtn.addEventListener('click', () => {
+      document.getElementById('filterForm').reset();
+      document.getElementById('fieldsProjection').value = 'title,code,credits,instructor,schedule,room,capacity,enrolled';
+      loadInitialCourses();
+    });
+
+    // Allow Enter key to trigger filter
+    document.getElementById('filterForm').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyFiltersBtn.click();
+      }
+    });
+
+    async function loadFilteredCourses() {
+      try {
+        const queryParams = new URLSearchParams();
+
+        const searchTitle = document.getElementById('searchTitle').value.trim();
+        const searchCode = document.getElementById('searchCode').value.trim();
+        const searchInstructor = document.getElementById('searchInstructor').value.trim();
+        const filterType = document.getElementById('filterType').value.trim();
+        const minCredits = document.getElementById('minCredits').value.trim();
+        const maxCredits = document.getElementById('maxCredits').value.trim();
+        const minCapacity = document.getElementById('minCapacity').value.trim();
+        const maxCapacity = document.getElementById('maxCapacity').value.trim();
+        const filterEnrolled = document.getElementById('filterEnrolled').value.trim();
+        const sortField = document.getElementById('sortField').value.trim();
+        const sortDirection = document.getElementById('sortDirection').value.trim();
+        const fieldsProjection = document.getElementById('fieldsProjection').value.trim();
+
+        if (searchTitle) queryParams.append('title', searchTitle);
+        if (searchCode) queryParams.append('code', searchCode);
+        if (searchInstructor) queryParams.append('instructor', searchInstructor);
+        if (filterType) queryParams.append('type', filterType);
+        if (minCredits) queryParams.append('minCredits', minCredits);
+        if (maxCredits) queryParams.append('maxCredits', maxCredits);
+        if (minCapacity) queryParams.append('minCapacity', minCapacity);
+        if (maxCapacity) queryParams.append('maxCapacity', maxCapacity);
+        if (filterEnrolled) queryParams.append('enrolled', filterEnrolled);
+        if (sortField) {
+          const sortValue = sortDirection === '-' ? '-' + sortField : sortField;
+          queryParams.append('sort', sortValue);
+        }
+        if (fieldsProjection) queryParams.append('fields', fieldsProjection);
+
+        const queryString = queryParams.toString();
+        const url = `/api/courses${queryString ? '?' + queryString : ''}`;
+
+        coursesContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">Loading courses...</p>';
+
+        const response = await fetch(url);
+        const courses = await response.json();
+
+        if (!response.ok) {
+          coursesContainer.innerHTML = '<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">Error loading courses</p>';
+          return;
+        }
+
+        if (courses.length === 0) {
+          coursesContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No courses found</p>';
+          return;
+        }
+
+        // Render filtered courses
+        renderCourses(courses);
+      } catch (error) {
+        console.error('Error:', error);
+        coursesContainer.innerHTML = '<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">Error loading courses</p>';
+      }
+    }
+
+    async function loadInitialCourses() {
+      try {
+        const response = await fetch('/api/courses');
+        const courses = await response.json();
+
+        if (!response.ok) {
+          coursesContainer.innerHTML = '<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">Error loading courses</p>';
+          return;
+        }
+
+        if (courses.length === 0) {
+          coursesContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No courses found</p>';
+          return;
+        }
+
+        renderCourses(courses);
+      } catch (error) {
+        console.error('Error:', error);
+        coursesContainer.innerHTML = '<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">Error loading courses</p>';
+      }
+    }
+
+    function renderCourses(courses) {
+      coursesContainer.innerHTML = courses.map(course => {
+        const pct = Math.round((course.enrolled / course.capacity) * 100) || 0;
+        return `
+          <div class="course-card">
+            <div class="course-card-header">
+              <h2>${course.title || 'N/A'}</h2>
+              <span class="course-code">${course.code || 'N/A'}</span>
+            </div>
+            <div class="course-card-body">
+              <p class="course-description">${course.description || 'No description'}</p>
+              <div class="course-meta">
+                ${course.credits !== undefined ? `<div class="course-meta-item"><strong>${course.credits}</strong><small>Credits</small></div>` : ''}
+                ${course.instructor ? `<div class="course-meta-item"><strong>${course.instructor}</strong><small>Instructor</small></div>` : ''}
+              </div>
+              <div class="course-meta">
+                ${course.schedule ? `<div class="course-meta-item"><strong>${course.schedule}</strong><small>Times</small></div>` : ''}
+                ${course.room ? `<div class="course-meta-item"><strong>${course.room}</strong><small>Location</small></div>` : ''}
+              </div>
+              ${course.capacity !== undefined ? `
+              <div class="enrollment-status"><strong>${course.enrolled || 0}/${course.capacity}</strong> Students Enrolled
+                <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%;"></div></div>
+              </div>
+              ` : ''}
+            </div>
+            <div class="course-card-footer">
+              <a class="btn btn-primary" href="/courses/${course.id}">View & Enroll</a>
+              <button class="btn btn-delete" onclick="deleteCourse('${course.id}')">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function deleteCourse(courseId) {
+      if (confirm('Are you sure you want to delete this course?')) {
+        fetch(`/api/courses/${courseId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            alert('Course deleted successfully!');
+            loadInitialCourses();
+          } else {
+            alert('Error deleting course');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error deleting course: ' + error.message);
+        });
+      }
+    }
+
+    // ========== MODAL FUNCTIONALITY ==========
     const modal = document.getElementById('courseModal');
     const addCourseBtn = document.getElementById('addCourseBtn');
     const closeModal = document.getElementById('closeModal');

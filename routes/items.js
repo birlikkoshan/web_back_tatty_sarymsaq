@@ -117,7 +117,8 @@ router.get("/courses/:id", (req, res) => {
           }
 
           const courseInfo = generateCourseInfo(item, stats);
-          const html = template.replace(/{{COURSE_INFO}}/g, courseInfo);
+          let html = template.replace(/{{COURSE_INFO}}/g, courseInfo);
+          html = html.replace(/{{COURSE_TITLE}}/g, item.title);
           res.send(html);
         });
       })

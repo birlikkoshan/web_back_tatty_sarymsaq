@@ -4,11 +4,9 @@ const path = require("path");
 
 const router = express.Router();
 
-// GET /courses - Render courses page with search and course cards
+// GET /courses - Render courses page with all courses
 router.get("/courses", (req, res) => {
-  const q = (req.query.q || "").toLowerCase();
-
-  // Fetch courses from API endpoint
+  // Fetch all courses from API endpoint
   fetch('http://localhost:3000/api/courses')
     .then(response => {
       if (!response.ok) {
@@ -17,21 +15,8 @@ router.get("/courses", (req, res) => {
       return response.json();
     })
     .then(items => {
-      // Filter by search query if provided
-      let filteredItems = items || [];
-      if (q) {
-        filteredItems = items.filter((it) => {
-          const searchText = (
-            it.title + " " + 
-            (it.code || "") + " " + 
-            (it.description || "")
-          ).toLowerCase();
-          return searchText.includes(q);
-        });
-      }
-
       // Generate course cards HTML
-      const coursesList = filteredItems.map((it) => {
+      const coursesList = items.map((it) => {
         const pct = Math.round((it.enrolled / it.capacity) * 100) || 0;
         return `
           <div class="course-card">
@@ -54,15 +39,15 @@ router.get("/courses", (req, res) => {
               </div>
             </div>
             <div class="course-card-footer">
-              <a class="btn btn-primary" href="/courses/${it._id}">View & Enroll</a>
-              <button class="btn btn-delete" onclick="deleteCourse(${it._id})">Delete Course</button>
+              <a class="btn btn-primary" href="/courses/${it.id}">View & Enroll</a>
+              <button class="btn btn-delete" onclick="deleteCourse('${it.id}')">Delete Course</button>
             </div>  
           </div>
         `;
       })
       .join("\n") || "<p>No courses found.</p>";
 
-      // Load template and replace placeholders
+      // Load template and replace placeholder
       const templatePath = path.join(__dirname, "../views", "courses.html");
       fs.readFile(templatePath, "utf8", (err, template) => {
         if (err) {
@@ -70,10 +55,7 @@ router.get("/courses", (req, res) => {
           return res.status(500).send("Error loading courses page");
         }
 
-        let html = template
-          .replace(/{{SEARCH_QUERY}}/g, q || "")
-          .replace(/{{COURSES_LIST}}/g, coursesList);
-
+        let html = template.replace(/{{COURSES_LIST}}/g, coursesList);
         res.send(html);
       });
     })

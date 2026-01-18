@@ -1,6 +1,5 @@
 [
   {
-    "id": 1,
     "title": "Calculus 1",
     "type": "course",
     "code": "MATH101",
@@ -15,7 +14,6 @@
     "prerequisites": "None"
   },
   {
-    "id": 2,
     "title": "Introduction to Programming",
     "type": "course",
     "code": "CS102",
@@ -30,7 +28,6 @@
     "prerequisites": "None"
   },
   {
-    "id": 3,
     "title": "International Language 1",
     "type": "course",
     "code": "LANG301",
@@ -45,7 +42,6 @@
     "prerequisites": "None"
   },
   {
-    "id": 4,
     "title": "Object-Oriented Programming",
     "type": "course",
     "code": "CS203",
@@ -60,7 +56,6 @@
     "prerequisites": "Introduction to Programming"
   },
   {
-    "id": 5,
     "title": "Web-Technologies",
     "type": "course",
     "code": "WEB304",
@@ -75,7 +70,6 @@
     "prerequisites": "Introduction to Programming"
   },
   {
-    "id": 6,
     "title": "Introduction to Programming67",
     "type": "course",
     "code": "CS67",
