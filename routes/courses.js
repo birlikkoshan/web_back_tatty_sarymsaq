@@ -1,68 +1,142 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const { ObjectId } = require("mongodb");
+const { getCollection } = require("../database/mongo");
+const { escapeHtml, calculateStats, generateCourseInfo, isValidObjectId } = require("../utils");
 
 const router = express.Router();
+const COLLECTION = "courses";
 
 // GET /courses - Render courses page with all courses
-router.get("/courses", (req, res) => {
-  // Fetch all courses from API endpoint
-  fetch('http://localhost:3000/api/courses')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to fetch courses');
-      }
-      return response.json();
-    })
-    .then(items => {
-      // Generate course cards HTML
-      const coursesList = items.map((it) => {
-        const pct = Math.round((it.enrolled / it.capacity) * 100) || 0;
-        return `
+router.get("/courses", async (req, res) => {
+  try {
+    const col = await getCollection(COLLECTION);
+    const items = await col.find({}).toArray();
+
+    // Generate course cards HTML
+    const coursesList =
+      items
+        .map((it) => {
+          const pct = Math.round(((it.enrolled || 0) / (it.capacity || 1)) * 100) || 0;
+          const id = String(it._id);
+          return `
           <div class="course-card">
             <div class="course-card-header">
-              <h2>${it.title}</h2>
-              <span class="course-code">${it.code || ""}</span>
+              <h2>${escapeHtml(it.title || "N/A")}</h2>
+              <span class="course-code">${escapeHtml(it.code || "N/A")}</span>
             </div>
             <div class="course-card-body">
-              <p class="course-description">${it.description || ""}</p>
+              <p class="course-description">${escapeHtml(it.description || "No description")}</p>
               <div class="course-meta">
-                <div class="course-meta-item"><strong>${it.credits || "-"} </strong><small>Credits</small></div>
-                <div class="course-meta-item"><strong>${it.instructor || "-"} </strong><small>Instructor</small></div>
+                <div class="course-meta-item"><strong>${escapeHtml(it.credits || "-")} </strong><small>Credits</small></div>
+                <div class="course-meta-item"><strong>${escapeHtml(it.instructor || "-")} </strong><small>Instructor</small></div>
               </div>
               <div class="course-meta">
-                <div class="course-meta-item"><strong>${it.schedule || "-"} </strong><small>Times</small></div>
-                <div class="course-meta-item"><strong>${it.room || "-"} </strong><small>Location</small></div>
+                <div class="course-meta-item"><strong>${escapeHtml(it.schedule || "-")} </strong><small>Times</small></div>
+                <div class="course-meta-item"><strong>${escapeHtml(it.room || "-")} </strong><small>Location</small></div>
               </div>
-              <div class="enrollment-status"><strong>${it.enrolled}/${it.capacity} </strong> Students Enrolled
+              <div class="enrollment-status"><strong>${it.enrolled || 0}/${it.capacity || 0} </strong> Students Enrolled
                 <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%;"></div></div>
               </div>
             </div>
             <div class="course-card-footer">
-              <a class="btn btn-primary" href="/courses/${it.id}">View & Enroll</a>
-              <button class="btn btn-delete" onclick="deleteCourse('${it.id}')">Delete Course</button>
+              <a class="btn btn-primary" href="/courses/${id}">View & Enroll</a>
+              <button class="btn btn-delete" onclick="deleteCourse('${id}')">Delete Course</button>
             </div>  
           </div>
         `;
-      })
-      .join("\n") || "<p>No courses found.</p>";
+        })
+        .join("\n") || "<p>No courses found.</p>";
 
-      // Load template and replace placeholder
-      const templatePath = path.join(__dirname, "../views", "courses.html");
-      fs.readFile(templatePath, "utf8", (err, template) => {
-        if (err) {
-          console.error("Error reading courses template:", err);
-          return res.status(500).send("Error loading courses page");
-        }
+    // Load template and replace placeholder
+    const templatePath = path.join(__dirname, "../views", "courses.html");
+    fs.readFile(templatePath, "utf8", (err, template) => {
+      if (err) {
+        console.error("Error reading courses template:", err);
+        return res.status(500).send("Error loading courses page");
+      }
 
-        let html = template.replace(/{{COURSES_LIST}}/g, coursesList);
-        res.send(html);
-      });
-    })
-    .catch(error => {
-      console.error("Error fetching courses:", error);
-      res.status(500).send("Error loading courses");
+      let html = template.replace(/{{COURSES_LIST}}/g, coursesList);
+      res.send(html);
     });
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    res.status(500).send("Error loading courses");
+  }
+});
+
+// GET /courses/:id - Display course enrollment details
+router.get("/courses/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return res.status(400).send(`
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
+          <h2>Invalid Course ID</h2>
+          <p>The provided course ID is invalid.</p>
+          <p><a href="/courses">Back to Courses</a></p>
+        </div>
+      `);
+    }
+
+    // Check if static file exists first
+    const candidate = path.join(__dirname, "../views", id + ".html");
+    fs.access(candidate, fs.constants.R_OK, (err) => {
+      if (!err) return res.sendFile(candidate);
+
+      // Load from database if static file doesn't exist
+      (async () => {
+        try {
+          const col = await getCollection(COLLECTION);
+          const item = await col.findOne({ _id: new ObjectId(id) });
+
+          if (!item) {
+            return res.status(404).send(`
+              <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
+                <h2>Course Not Found</h2>
+                <p>Course with ID ${escapeHtml(id)} does not exist.</p>
+                <p><a href="/courses">Back to Courses</a></p>
+              </div>
+            `);
+          }
+
+          // Convert _id to id for frontend
+          const courseData = { ...item, id: String(item._id) };
+
+          // Calculate stats
+          const stats = calculateStats(courseData);
+
+          // Load template and render
+          const enrollmentPath = path.join(__dirname, "../views", "enrollment.html");
+          fs.readFile(enrollmentPath, "utf8", (err, template) => {
+            if (err) {
+              console.error("Error reading enrollment template:", err);
+              return res.status(500).send("Error loading course details");
+            }
+            const courseInfo = generateCourseInfo(courseData, stats);
+            let html = template.replace(/{{COURSE_INFO}}/g, courseInfo);
+            html = html.replace(/{{COURSE_TITLE}}/g, escapeHtml(courseData.title || "Course"));
+            res.send(html);
+          });
+        } catch (error) {
+          console.error("Error fetching course:", error);
+          return res.status(500).send(`
+            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
+              <h2>Error</h2>
+              <p>An error occurred while loading the course.</p>
+              <p><a href="/courses">Back to Courses</a></p>
+            </div>
+          `);
+        }
+      })();
+    });
+  } catch (error) {
+    console.error("Error in course detail route:", error);
+    res.status(500).send("Error loading course details");
+  }
 });
 
 module.exports = router;

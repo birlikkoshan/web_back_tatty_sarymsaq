@@ -6,7 +6,6 @@ require("dotenv").config();
 const pagesRoutes = require("./routes/pages");
 const coursesPageRoutes = require("./routes/courses");
 const courseApiRoutes = require("./routes/apiCourses");
-const itemsRoutes = require("./routes/items");
 const contactRoutes = require("./routes/contact");
 
 const app = express();
@@ -23,10 +22,10 @@ app.use((req, res, next) => {
 // Pages
 app.use(pagesRoutes);
 
+// Course pages
 app.use(coursesPageRoutes);
-app.use(itemsRoutes);
 
-// app.use("/api/course", courseApiRoutes);
+// API routes
 app.use("/api/courses", courseApiRoutes);
 
 app.use(contactRoutes); // POST /contact
@@ -38,7 +37,7 @@ app.use((req, res) => {
   return res.status(404).sendFile(path.join(__dirname, "views/not_found.html"));
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

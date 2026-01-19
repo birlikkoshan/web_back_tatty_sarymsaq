@@ -1,29 +1,8 @@
 const express = require("express");
 const { getCollection } = require("../database/mongo");
+const { validateContactForm } = require("../utils");
 
 const router = express.Router();
-
-// Helper function to validate contact form data
-function validateContactForm(data) {
-  const errors = [];
-
-  if (!data.name || data.name.trim() === "") {
-    errors.push("Name is required");
-  }
-  if (!data.email || data.email.trim() === "") {
-    errors.push("Email is required");
-  }
-  if (!data.message || data.message.trim() === "") {
-    errors.push("Message is required");
-  }
-
-  // Basic email format validation
-  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.push("Email format is invalid");
-  }
-
-  return errors;
-}
 
 // POST /contact - Handle contact form submissions
 router.post("/contact", async (req, res) => {
