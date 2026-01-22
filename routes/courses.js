@@ -8,48 +8,10 @@ const { escapeHtml, calculateStats, generateCourseInfo, isValidObjectId } = requ
 const router = express.Router();
 const COLLECTION = "courses";
 
-// GET /courses - Render courses page with all courses
+// GET /courses - Render courses page (data loaded via fetch from frontend)
 router.get("/courses", async (req, res) => {
   try {
-    const col = await getCollection(COLLECTION);
-    const items = await col.find({}).toArray();
-
-    // Generate course cards HTML
-    const coursesList =
-      items
-        .map((it) => {
-          const pct = Math.round(((it.enrolled || 0) / (it.capacity || 1)) * 100) || 0;
-          const id = String(it._id);
-          return `
-          <div class="course-card">
-            <div class="course-card-header">
-              <h2>${escapeHtml(it.title || "N/A")}</h2>
-              <span class="course-code">${escapeHtml(it.code || "N/A")}</span>
-            </div>
-            <div class="course-card-body">
-              <p class="course-description">${escapeHtml(it.description || "No description")}</p>
-              <div class="course-meta">
-                <div class="course-meta-item"><strong>${escapeHtml(it.credits || "-")} </strong><small>Credits</small></div>
-                <div class="course-meta-item"><strong>${escapeHtml(it.instructor || "-")} </strong><small>Instructor</small></div>
-              </div>
-              <div class="course-meta">
-                <div class="course-meta-item"><strong>${escapeHtml(it.schedule || "-")} </strong><small>Times</small></div>
-                <div class="course-meta-item"><strong>${escapeHtml(it.room || "-")} </strong><small>Location</small></div>
-              </div>
-              <div class="enrollment-status"><strong>${it.enrolled || 0}/${it.capacity || 0} </strong> Students Enrolled
-                <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%;"></div></div>
-              </div>
-            </div>
-            <div class="course-card-footer">
-              <a class="btn btn-primary" href="/courses/${id}">View & Enroll</a>
-              <button class="btn btn-delete" onclick="deleteCourse('${id}')">Delete Course</button>
-            </div>  
-          </div>
-        `;
-        })
-        .join("\n") || "<p>No courses found.</p>";
-
-    // Load template and replace placeholder
+    // Load template and replace placeholder with empty content (will be loaded via fetch)
     const templatePath = path.join(__dirname, "../views", "courses.html");
     fs.readFile(templatePath, "utf8", (err, template) => {
       if (err) {
@@ -57,12 +19,13 @@ router.get("/courses", async (req, res) => {
         return res.status(500).send("Error loading courses page");
       }
 
-      let html = template.replace(/{{COURSES_LIST}}/g, coursesList);
+      // Replace placeholder with loading message - frontend will fetch and render data
+      let html = template.replace(/{{COURSES_LIST}}/g, '<p style="text-align: center; color: #666; grid-column: 1/-1;">Loading courses...</p>');
       res.send(html);
     });
   } catch (error) {
-    console.error("Error fetching courses:", error);
-    res.status(500).send("Error loading courses");
+    console.error("Error loading courses page:", error);
+    res.status(500).send("Error loading courses page");
   }
 });
 
