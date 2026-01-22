@@ -11,11 +11,15 @@ async function connectDB() {
     throw new Error("MONGODB_URI is not set in environment variables");
   }
 
-  const dbName = process.env.MONGODB_DB_NAME || "assignment3";
-
-  client = new MongoClient(uri, {
+  const dbName = process.env.MONGODB_DB_NAME || "stud_reg";
+  const mongoOptions = {
+    tls: true,
+    retryWrites: true,
     maxPoolSize: 10,
-  });
+    serverSelectionTimeoutMS: 5000,
+  };
+
+  client = new MongoClient(uri, mongoOptions);
 
   await client.connect();
   db = client.db(dbName);
