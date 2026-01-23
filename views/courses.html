@@ -150,7 +150,6 @@
   <main class="container">
     <h1>Available Courses</h1>
     
-    <!-- Filter, Sort & Projection Accordion -->
     <div class="accordion-container">
       <div class="accordion-header" id="filterAccordion">
         <span>🔍 Filter, Sort & Display Options</span>
@@ -158,7 +157,6 @@
       </div>
       <div class="accordion-content" id="filterContent">
         <form id="filterForm">
-          <!-- Search Filters -->
           <h3 style="margin-top: 0; margin-bottom: 15px;">Search Filters</h3>
           <div class="filter-grid">
             <div class="filter-group">
@@ -184,7 +182,6 @@
             </div>
           </div>
 
-          <!-- Range Filters -->
           <h3 style="margin: 20px 0 15px 0;">Range Filters</h3>
           <div class="filter-grid">
             <div class="filter-group">
@@ -207,7 +204,6 @@
             </div>
           </div>
 
-          <!-- Sort Options -->
           <h3 style="margin: 20px 0 15px 0;">Sort Options</h3>
           <div class="filter-grid">
             <div class="filter-group">
@@ -231,7 +227,6 @@
             </div>
           </div>
 
-          <!-- Display Fields -->
           <h3 style="margin: 20px 0 15px 0;">Display Fields</h3>
           <div class="filter-group">
             <label for="fieldsProjection">Select Fields (comma-separated)</label>
@@ -239,7 +234,6 @@
                    value="title,code,credits,instructor,schedule,room,capacity,enrolled">
           </div>
 
-          <!-- Buttons -->
           <div class="button-group">
             <button type="button" class="btn-apply" id="applyFiltersBtn">Apply Filters</button>
             <button type="button" class="btn-clear" id="clearFiltersBtn">Clear Filters</button>
@@ -248,9 +242,7 @@
       </div>
     </div>
     
-    <div id="courses" class="courses-grid">
-      {{COURSES_LIST}}
-    </div>
+    <div id="courses" class="courses-grid">{{COURSES_LIST}}</div>
     
     <div class="add-course-container">
       <button class="btn btn-primary" id="addCourseBtn">Add New Course</button>
@@ -271,33 +263,71 @@
         <div class="form-row">
           <div class="form-group">
             <label for="title">Title *</label>
-            <input type="text" id="title" name="title" required>
+            <input type="text" id="title" name="title" placeholder="Object-Oriented Programming" required>
           </div>
           <div class="form-group">
             <label for="code">Course Code *</label>
-            <input type="text" id="code" name="code" required>
+            <input type="text" id="code" name="code" placeholder="CS203" required>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="credits">Credits</label>
-            <input type="number" id="credits" name="credits" min="0" max="10">
+            <label for="type">Type *</label>
+            <select id="type" name="type" required>
+              <option value="course">Course</option>
+              <option value="lab">Lab</option>
+              <option value="seminar">Seminar</option>
+            </select>
           </div>
           <div class="form-group">
-            <label for="capacity">Capacity</label>
-            <input type="number" id="capacity" name="capacity" min="0">
+            <label for="credits">Credits</label>
+            <input type="number" id="credits" name="credits" min="0" max="10" placeholder="5">
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="description">Description</label>
-          <textarea id="description" name="description"></textarea>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="instructor">Instructor Name</label>
+            <input type="text" id="instructor" name="instructor" placeholder="Name">
+          </div>
+          <div class="form-group">
+            <label for="email">Instructor Email</label>
+            <input type="email" id="email" name="email" placeholder="email@astanait.edu.kz">
+          </div>
         </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="schedule">Schedule</label>
+            <input type="text" id="schedule" name="schedule" placeholder="Fri 15:00-16:30 PM">
+          </div>
+          <div class="form-group">
+            <label for="room">Room</label>
+            <input type="text" id="room" name="room" placeholder="215 Tech Building">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="capacity">Capacity</label>
+            <input type="number" id="capacity" name="capacity" min="0" placeholder="30">
+          </div>
           <div class="form-group">
             <label for="enrolled">Enrolled</label>
             <input type="number" id="enrolled" name="enrolled" min="0" value="0">
           </div>
+        </div>
+
+        <div class="form-group">
+          <label for="prerequisites">Prerequisites</label>
+          <input type="text" id="prerequisites" name="prerequisites" placeholder="Introduction to Programming">
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" placeholder="Master OOP principles..."></textarea>
+        </div>
 
         <div class="modal-footer">
           <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
@@ -312,7 +342,6 @@
   </footer>
 
   <script>
-    // ========== ACCORDION FUNCTIONALITY ==========
     const filterAccordion = document.getElementById('filterAccordion');
     const filterContent = document.getElementById('filterContent');
     const accordionToggle = filterAccordion.querySelector('.accordion-toggle');
@@ -323,35 +352,33 @@
       accordionToggle.classList.toggle('active');
     });
 
-    // ========== FILTER, SORT & PROJECTION FUNCTIONALITY ==========
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
     const coursesContainer = document.getElementById('courses');
 
-    applyFiltersBtn.addEventListener('click', async (e) => {
+    applyFiltersBtn.addEventListener('click', async (e) => { // When you click Apply Filters, the main filtering function is called.
       e.preventDefault();
       await loadFilteredCourses();
     });
 
-    clearFiltersBtn.addEventListener('click', () => {
-      document.getElementById('filterForm').reset();
+    clearFiltersBtn.addEventListener('click', () => { // The Clear Filters button resets the form and loads all courses without filters.
+      document.getElementById('filterForm').reset(); 
       document.getElementById('fieldsProjection').value = 'title,code,credits,instructor,schedule,room,capacity,enrolled';
       loadInitialCourses();
     });
 
-    // Allow Enter key to trigger filter
     document.getElementById('filterForm').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        applyFiltersBtn.click();
+        applyFiltersBtn.click(); // Allows you to apply filters by pressing Enter.
       }
     });
 
-    async function loadFilteredCourses() {
+    async function loadFilteredCourses() { // This is the key function of my part.
       try {
-        const queryParams = new URLSearchParams();
+        const queryParams = new URLSearchParams(); // Creating an object for generating query parameters.
 
-        const searchTitle = document.getElementById('searchTitle').value.trim();
+        const searchTitle = document.getElementById('searchTitle').value.trim(); // Here I am reading the values entered by the user.
         const searchCode = document.getElementById('searchCode').value.trim();
         const searchInstructor = document.getElementById('searchInstructor').value.trim();
         const filterType = document.getElementById('filterType').value.trim();
@@ -364,7 +391,7 @@
         const sortDirection = document.getElementById('sortDirection').value.trim();
         const fieldsProjection = document.getElementById('fieldsProjection').value.trim();
 
-        if (searchTitle) queryParams.append('title', searchTitle);
+        if (searchTitle) queryParams.append('title', searchTitle); // I only add filters if they are full.
         if (searchCode) queryParams.append('code', searchCode);
         if (searchInstructor) queryParams.append('instructor', searchInstructor);
         if (filterType) queryParams.append('type', filterType);
@@ -380,14 +407,14 @@
         if (fieldsProjection) queryParams.append('fields', fieldsProjection);
 
         const queryString = queryParams.toString();
-        const url = `/api/courses${queryString ? '?' + queryString : ''}`;
+        const url = `/api/courses${queryString ? '?' + queryString : ''}`; // I'm collecting the final URL for the fetch request.
 
         coursesContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">Loading courses...</p>';
 
         const response = await fetch(url);
-        const courses = await response.json();
+        const courses = await response.json(); // The Fetch API sends a GET request and receives the filtered data.
 
-        if (!response.ok) {
+        if (!response.ok) { // Error handling and empty result
           coursesContainer.innerHTML = '<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">Error loading courses</p>';
           return;
         }
@@ -397,7 +424,6 @@
           return;
         }
 
-        // Render filtered courses
         renderCourses(courses);
       } catch (error) {
         console.error('Error:', error);
@@ -405,7 +431,7 @@
       }
     }
 
-    async function loadInitialCourses() {
+    async function loadInitialCourses() { // It is used when opening the page for the first time and when resetting filters.
       try {
         const response = await fetch('/api/courses');
         const courses = await response.json();
@@ -427,8 +453,8 @@
       }
     }
 
-    function renderCourses(courses) {
-      coursesContainer.innerHTML = courses.map(course => {
+    function renderCourses(courses) {  // The function accepts an array of courses that came from the backend via the Fetch API.
+      coursesContainer.innerHTML = courses.map(course => { // Converting data to HTML
         const pct = Math.round((course.enrolled / course.capacity) * 100) || 0;
         return `
           <div class="course-card">
@@ -461,7 +487,6 @@
       }).join('');
     }
 
-    // ========== MODAL FUNCTIONALITY ==========
     const modal = document.getElementById('courseModal');
     const addCourseBtn = document.getElementById('addCourseBtn');
     const closeModal = document.getElementById('closeModal');
@@ -469,14 +494,12 @@
     const courseForm = document.getElementById('courseForm');
     const alertMessage = document.getElementById('alertMessage');
 
-    // Open modal
     addCourseBtn.addEventListener('click', () => {
       modal.classList.add('show');
       courseForm.reset();
       alertMessage.classList.remove('show');
     });
 
-    // Close modal  
     const closeModalWindow = () => {
       modal.classList.remove('show');
       alertMessage.classList.remove('show');
@@ -485,14 +508,12 @@
     closeModal.addEventListener('click', closeModalWindow);
     cancelBtn.addEventListener('click', closeModalWindow);
 
-    // Close modal when clicking outside
     window.addEventListener('click', (event) => {
       if (event.target === modal) {
         closeModalWindow();
       }
     });
 
-    // Handle form submission
     courseForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -506,7 +527,7 @@
       };
 
       try {
-        const response = await fetch('/api/courses', {
+        const response = await fetch('/api/courses', { // This block is responsible for the UI of the course addition form and the POST request.:
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -535,10 +556,9 @@
       alertMessage.className = `alert show alert-${type}`;
     }
 
-    // Delete course function (defined once)
     window.deleteCourse = function(courseId) {
       if (confirm('Are you sure you want to delete this course?')) {
-        fetch(`/api/courses/${courseId}`, {
+        fetch(`/api/courses/${courseId}`, { // Deletion is implemented via a DELETE request to the API.
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json'

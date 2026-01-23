@@ -8,13 +8,11 @@ const { escapeHtml, calculateStats, generateCourseInfo, isValidObjectId } = requ
 const router = express.Router();
 const COLLECTION = "courses";
 
-// GET /courses - Render courses page with all courses
 router.get("/courses", async (req, res) => {
   try {
     const col = await getCollection(COLLECTION);
     const items = await col.find({}).toArray();
 
-    // Generate course cards HTML
     const coursesList =
       items
         .map((it) => {
@@ -49,7 +47,6 @@ router.get("/courses", async (req, res) => {
         })
         .join("\n") || "<p>No courses found.</p>";
 
-    // Load template and replace placeholder
     const templatePath = path.join(__dirname, "../views", "courses.html");
     fs.readFile(templatePath, "utf8", (err, template) => {
       if (err) {
@@ -66,12 +63,10 @@ router.get("/courses", async (req, res) => {
   }
 });
 
-// GET /courses/:id - Display course enrollment details
 router.get("/courses/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Validate ObjectId
     if (!isValidObjectId(id)) {
       return res.status(400).send(`
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
@@ -82,12 +77,10 @@ router.get("/courses/:id", async (req, res) => {
       `);
     }
 
-    // Check if static file exists first
     const candidate = path.join(__dirname, "../views", id + ".html");
     fs.access(candidate, fs.constants.R_OK, (err) => {
       if (!err) return res.sendFile(candidate);
 
-      // Load from database if static file doesn't exist
       (async () => {
         try {
           const col = await getCollection(COLLECTION);
@@ -103,13 +96,10 @@ router.get("/courses/:id", async (req, res) => {
             `);
           }
 
-          // Convert _id to id for frontend
           const courseData = { ...item, id: String(item._id) };
 
-          // Calculate stats
           const stats = calculateStats(courseData);
 
-          // Load template and render
           const enrollmentPath = path.join(__dirname, "../views", "enrollment.html");
           fs.readFile(enrollmentPath, "utf8", (err, template) => {
             if (err) {

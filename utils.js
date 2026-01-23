@@ -1,6 +1,5 @@
 const { ObjectId } = require("mongodb");
 
-// ========== HTML Utilities ==========
 
 /**
  * Escape HTML to prevent XSS attacks
@@ -19,7 +18,6 @@ function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (m) => map[m]);
 }
 
-// ========== Course Utilities ==========
 
 /**
  * Calculate course enrollment statistics
