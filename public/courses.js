@@ -185,10 +185,16 @@ courseForm.addEventListener('submit', async (e) => {
   const formData = {
     title: document.getElementById('title').value,
     code: document.getElementById('code').value,
+    type: document.getElementById('type').value,
     credits: document.getElementById('credits').value,
-    capacity: document.getElementById('capacity').value,
     description: document.getElementById('description').value,
-    enrolled: document.getElementById('enrolled').value
+    instructor: document.getElementById('instructor').value,
+    email: document.getElementById('email').value,
+    schedule: document.getElementById('schedule').value,
+    room: document.getElementById('room').value,
+    capacity: document.getElementById('capacity').value,
+    enrolled: document.getElementById('enrolled').value,
+    prerequisites: document.getElementById('prerequisites').value
   };
 
   try {
