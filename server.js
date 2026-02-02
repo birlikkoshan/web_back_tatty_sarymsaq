@@ -4,7 +4,6 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo").default;
 require("dotenv").config();
 
-// Import route modules
 const pagesRoutes = require("./routes/pages");
 const coursesPageRoutes = require("./routes/courses");
 const courseApiRoutes = require("./routes/apiCourses");
