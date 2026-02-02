@@ -1,6 +1,7 @@
 const express = require("express");
 const { ObjectId } = require("mongodb");
 const { getCollection } = require("../database/mongo");
+const { requireAuth } = require("../middleware/requireAuth");
 const {
   isValidObjectId,
   toPublic,
@@ -56,7 +57,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST /api/course
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   try {
     const parsed = validateCreateBody(req.body);
     if (!parsed.ok) {
@@ -77,7 +78,7 @@ router.post("/", async (req, res) => {
 });
 
 // PUT /api/course/:id
-router.put("/:id", async (req, res) => {
+router.put("/:id", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id))
@@ -141,7 +142,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE /api/course/:id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidObjectId(id))

@@ -208,6 +208,12 @@ courseForm.addEventListener('submit', async (e) => {
 
     const data = await response.json();
 
+    if (response.status === 401) {
+      showAlert('Please login to perform this action', 'error');
+      setTimeout(() => { window.location.href = '/login'; }, 800);
+      return;
+    }
+
     if (response.ok) {
       showAlert('Course added successfully!', 'success');
       setTimeout(() => {
@@ -236,7 +242,12 @@ window.deleteCourse = function(courseId) {
         'Content-Type': 'application/json'
       }
     })
-    .then(response => {
+    .then(async (response) => {
+      if (response.status === 401) {
+        alert('Please login to perform this action');
+        window.location.href = '/login';
+        return;
+      }
       if (response.ok) {
         alert('Course deleted successfully!');
         loadInitialCourses();
