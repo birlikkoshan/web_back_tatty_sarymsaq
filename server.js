@@ -2,7 +2,6 @@ const express = require("express");
 const path = require("path");
 require("dotenv").config();
 
-// Import route modules
 const pagesRoutes = require("./routes/pages");
 const coursesPageRoutes = require("./routes/courses");
 const courseApiRoutes = require("./routes/apiCourses");
@@ -13,6 +12,7 @@ const app = express();
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
 
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);

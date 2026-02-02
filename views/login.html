@@ -54,7 +54,6 @@
 
         if (response.ok) {
           errorMessage.textContent = '';
-          // Redirect to courses page on success
           window.location.href = '/courses';
         } else {
           errorMessage.textContent = data.error || 'Login failed. Please try again.';
