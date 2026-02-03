@@ -4,8 +4,6 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo").default;
 
 const config = require("./config");
-const pagesRoutes = require("./routes/pages");
-const coursesPageRoutes = require("./routes/courses");
 const courseApiRoutes = require("./routes/apiCourses");
 const contactRoutes = require("./routes/contact");
 const authRoutes = require("./routes/auth");
@@ -14,7 +12,6 @@ const app = express();
 
 app.set("trust proxy", 1);
 
-app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -50,23 +47,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Pages
-app.use(pagesRoutes);
-
-// Course pages
-app.use(coursesPageRoutes);
-
 // API routes
 app.use("/api/courses", courseApiRoutes);
 app.use("/api", authRoutes);
 
 app.use(contactRoutes); // POST /contact
 
+// Serve React frontend build (static assets + SPA fallback)
+const frontendDist = path.join(__dirname, "frontend", "dist");
+app.use(express.static(frontendDist));
+
 app.use((req, res) => {
-  if (req.path.startsWith("/api/")) {
+  if (req.path.startsWith("/api")) {
     return res.status(404).json({ error: "Not Found" });
   }
-  return res.status(404).sendFile(path.join(__dirname, "views/not_found.html"));
+  res.sendFile(path.join(frontendDist, "index.html"));
 });
 
 const PORT = config.port;
