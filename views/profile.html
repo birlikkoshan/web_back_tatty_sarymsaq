@@ -7,23 +7,150 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/public/style.css" />
   <style>
+
+    :root {
+      --sand: #f3f7ff;
+      --ink: #0f172a;
+      --muted: #3b4a6b;
+      --accent: #2563eb;
+      --accent-soft: #e0e7ff;
+      --card: #ffffff;
+      --stroke: #dbe3ff;
+      --shadow: 0 18px 50px rgba(37, 99, 235, 0.15);
+    }
+    body {  
+      background:
+        radial-gradient(circle at 15% 15%, #e0e7ff 0%, rgba(224, 231, 255, 0) 55%),
+        radial-gradient(circle at 85% 10%, #dbeafe 0%, rgba(219, 234, 254, 0) 55%),
+        var(--sand);
+      color: var(--ink);
+    }
+    h1, h2 { letter-spacing: 0.2px; }
+    .muted { color: var(--muted); }
+    .profile-hero {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 18px 24px;
+      padding: 20px 24px;
+      background: white;
+      border: 1px solid var(--stroke);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      margin-top: 10px;
+    }
+    .profile-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: var(--accent);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: 1px;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+    }
+    .profile-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .profile-title h1 {
+      margin: 0;
+      font-size: clamp(26px, 3vw, 36px);
+    }
+    .profile-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      font-size: 14px;
+    }
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-soft);
+      color: #1e3a8a;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
     .profile-card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 20px;
       padding: 24px;
-      margin-top: 24px;
+      margin-top: 22px;
+      box-shadow: var(--shadow);
+    }
+    .profile-card h2 {
+      margin: 0 0 10px 0;
+      font-size: 22px;
     }
     .profile-grid {
       display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 12px 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
       margin-top: 16px;
     }
-    .profile-grid strong { color: #111827; }
-    .muted { color: #6b7280; }
+    .profile-item {
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #f8fbff;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .profile-item span {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+    }
+    .profile-item strong {
+      font-size: 16px;
+      color: var(--ink);
+    }
+    .activity-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .stat {
+      background: #f5f8ff;
+      border: 1px dashed #c7d2fe;
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+    .stat p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+    }
+    .stat strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 18px;
+    }
+    @media (max-width: 700px) {
+      .profile-hero {
+        padding: 18px;
+      }
+      .profile-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+      }
+    }
+    
   </style>
 </head>
 <body>
@@ -41,14 +168,44 @@
     </div>
   </header>
 
-  <main class="container" style="padding-top: 16px; padding-bottom: 32px;">
-    <h1>Your Profile</h1>
-    <p class="muted">This page is only accessible when you are logged in.</p>
+  <main class="container" style="padding-top: 20px; padding-bottom: 40px;">
+    <section class="profile-hero">
+      <div class="profile-avatar" id="profile-avatar">SM</div>
+      <div class="profile-title">
+        <h1 id="profile-name">Your Profile</h1>
+        <p class="muted" id="profile-subtitle">This page is only accessible when you are logged in.</p>
+        <div class="profile-meta">
+          <div class="meta-pill">Active Student</div>
+          <div class="meta-pill" id="profile-email-pill">Email: loading</div>
+        </div>
+      </div>
+    </section>
 
     <div class="profile-card">
-      <h2 style="margin-bottom: 8px;">Account details</h2>
+      <h2>Account details</h2>
       <div id="profile-info" class="profile-grid">
-        <strong>Loading…</strong><span class="muted">Please wait</span>
+        <div class="profile-item">
+          <span>Status</span>
+          <strong>Loading…</strong>
+        </div>
+        <div class="profile-item">
+          <span>Membership</span>
+          <strong>Please wait</strong>
+        </div>
+      </div>
+      <div class="activity-bar">
+        <div class="stat">
+          <p>Profile Strength</p>
+          <strong id="profile-strength">Updating…</strong>
+        </div>
+        <div class="stat">
+          <p>Last Login</p>
+          <strong id="profile-last-login">Today</strong>
+        </div>
+        <div class="stat">
+          <p>Role</p>
+          <strong id="profile-role">Student</strong>
+        </div>
       </div>
     </div>
   </main>
@@ -63,6 +220,11 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const box = document.getElementById('profile-info');
+      const nameEl = document.getElementById('profile-name');
+      const subtitleEl = document.getElementById('profile-subtitle');
+      const avatarEl = document.getElementById('profile-avatar');
+      const emailPillEl = document.getElementById('profile-email-pill');
+      const strengthEl = document.getElementById('profile-strength');
       try {
         const res = await fetch('/api/me', { credentials: 'include' });
         const data = await res.json();
@@ -71,16 +233,49 @@
           return;
         }
         const user = data.user || {};
+        const firstname = user.firstname || 'Student';
+        const email = user.email || 'N/A';
+        const userId = user.id || 'N/A';
+        const initials = firstname
+          .split(' ')
+          .map((part) => part[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase();
+
+        nameEl.textContent = `${firstname}'s Profile`;
+        subtitleEl.textContent = 'Your account information is ready to review.';
+        avatarEl.textContent = initials || 'SM';
+        emailPillEl.textContent = `Email: ${email}`;
+        strengthEl.textContent = userId !== 'N/A' ? 'Good' : 'Getting started';
+
         box.innerHTML = `
-          <strong>First name</strong><span>${(user.firstname || 'N/A')}</span>
-          <strong>Email</strong><span>${(user.email || 'N/A')}</span>
-          <strong>User ID</strong><span>${(user.id || 'N/A')}</span>
+          <div class="profile-item">
+            <span>First name</span>
+            <strong>${firstname}</strong>
+          </div>
+          <div class="profile-item">
+            <span>Email</span>
+            <strong>${email}</strong>
+          </div>
+          <div class="profile-item">
+            <span>User ID</span>
+            <strong>${userId}</strong>
+          </div>
+          <div class="profile-item">
+            <span>Account Status</span>
+            <strong>Verified</strong>
+          </div>
         `;
       } catch (e) {
-        box.innerHTML = '<strong>Error</strong><span class="muted">Failed to load profile</span>';
+        box.innerHTML = `
+          <div class="profile-item">
+            <span>Error</span>
+            <strong class="muted">Failed to load profile</strong>
+          </div>
+        `;
       }
     });
   </script>
 </body>
 </html>
-
