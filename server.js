@@ -2,8 +2,8 @@ const express = require("express");
 const path = require("path");
 const session = require("express-session");
 const MongoStore = require("connect-mongo").default;
-require("dotenv").config();
 
+const config = require("./config");
 const pagesRoutes = require("./routes/pages");
 const coursesPageRoutes = require("./routes/courses");
 const courseApiRoutes = require("./routes/apiCourses");
@@ -18,34 +18,31 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const SESSION_SECRET = process.env.SESSION_SECRET;
-if (!SESSION_SECRET) {
+if (!config.sessionSecret || config.sessionSecret === "dev_secret_change_me") {
   console.warn(
-    "WARNING: SESSION_SECRET is not set. Set it in Railway env for security.",
+    "WARNING: SESSION_SECRET is not set. Set it in Railway env for security."
   );
 }
 
-const cookieName = process.env.SESSION_COOKIE_NAME || "sid";
-
 app.use(
   session({
-    name: cookieName,
-    secret: SESSION_SECRET || "dev_secret_change_me",
+    name: config.sessionCookieName,
+    secret: config.sessionSecret,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
-      dbName: process.env.MONGODB_DB_NAME || "stud_reg",
+      mongoUrl: config.mongoUri,
+      dbName: config.dbName,
       collectionName: "sessions",
       ttl: 60 * 60 * 24 * 7, // 7 days
     }),
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
-  }),
+  })
 );
 
 app.use((req, res, next) => {
@@ -72,7 +69,7 @@ app.use((req, res) => {
   return res.status(404).sendFile(path.join(__dirname, "views/not_found.html"));
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

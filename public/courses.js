@@ -71,19 +71,21 @@ async function loadFilteredCourses() {
     coursesContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">Loading courses...</p>';
 
     const response = await fetch(url);
-    const courses = await response.json();
+    const data = await response.json();
 
     if (!response.ok) {
-      coursesContainer.innerHTML = '<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">Error loading courses</p>';
+      const msg = data && data.error ? data.error : 'Error loading courses';
+      const details = data && data.details && Array.isArray(data.details) ? data.details.join('; ') : '';
+      coursesContainer.innerHTML = `<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">${escapeHtml(msg)}${details ? ' — ' + escapeHtml(details) : ''}</p>`;
       return;
     }
 
+    const courses = Array.isArray(data) ? data : [];
     if (courses.length === 0) {
       coursesContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No courses found</p>';
       return;
     }
 
-    // Render filtered courses
     renderCourses(courses);
   } catch (error) {
     console.error('Error:', error);
@@ -91,16 +93,26 @@ async function loadFilteredCourses() {
   }
 }
 
+function escapeHtml(text) {
+  if (text == null) return '';
+  const div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
+
 async function loadInitialCourses() {
   try {
     const response = await fetch('/api/courses');
-    const courses = await response.json();
+    const data = await response.json();
 
     if (!response.ok) {
-      coursesContainer.innerHTML = '<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">Error loading courses</p>';
+      const msg = data && data.error ? data.error : 'Error loading courses';
+      const details = data && data.details && Array.isArray(data.details) ? data.details.join('; ') : '';
+      coursesContainer.innerHTML = `<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">${escapeHtml(msg)}${details ? ' — ' + escapeHtml(details) : ''}</p>`;
       return;
     }
 
+    const courses = Array.isArray(data) ? data : [];
     if (courses.length === 0) {
       coursesContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No courses found</p>';
       return;
@@ -218,10 +230,12 @@ courseForm.addEventListener('submit', async (e) => {
       showAlert('Course added successfully!', 'success');
       setTimeout(() => {
         closeModalWindow();
-        location.reload();
+        loadInitialCourses();
       }, 1500);
     } else {
-      showAlert(data.error || 'Error adding course', 'error');
+      const msg = data && data.error ? data.error : 'Error adding course';
+      const details = data && data.details && Array.isArray(data.details) ? data.details.join('; ') : '';
+      showAlert(details ? `${msg}: ${details}` : msg, 'error');
     }
   } catch (error) {
     showAlert('Error adding course: ' + error.message, 'error');
@@ -243,6 +257,7 @@ window.deleteCourse = function(courseId) {
       }
     })
     .then(async (response) => {
+      const data = await response.json().catch(() => ({}));
       if (response.status === 401) {
         alert('Please login to perform this action');
         window.location.href = '/login';
@@ -252,7 +267,8 @@ window.deleteCourse = function(courseId) {
         alert('Course deleted successfully!');
         loadInitialCourses();
       } else {
-        alert('Error deleting course');
+        const msg = data && data.error ? data.error : 'Error deleting course';
+        alert(msg);
       }
     })
     .catch(error => {

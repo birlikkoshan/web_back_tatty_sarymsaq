@@ -1,6 +1,3 @@
-import path from "path";
-import { fileURLToPath } from "url";
-
 const form = document.getElementById('form');
 const firstname_input = document.getElementById('firstname-input');
 const email_input = document.getElementById('email-input');

@@ -15,28 +15,26 @@
     <div class="container header-inner">
       <div class="logo">StudentMS</div>
       <nav class="nav">
-     <a class="choosed-link" href="/">Home</a>
-      <a href="/about">About</a>
-      <a href="/courses">Courses</a>
-      <a href="/contact">Contact</a>
-      <a id="auth-link" href="/login">Login</a>
-      <a id="logout-link" href="#" style="display:none">Logout</a>
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a class="choosed-link" href="/courses">Courses</a>
+        <a href="/contact">Contact</a>
+        <a id="auth-link" href="/login">Login</a>
+        <a id="logout-link" href="#" style="display:none">Logout</a>
       </nav>
     </div>
   </header>
 
   <main class="container">
     <h1>Available Courses</h1>
-    
-    <!-- Filter, Sort & Projection Accordion -->
+
     <div class="accordion-container">
       <div class="accordion-header" id="filterAccordion">
-        <span>🔍 Filter, Sort & Display Options</span>
+        <span>Filter, Sort & Display Options</span>
         <span class="accordion-toggle">▼</span>
       </div>
       <div class="accordion-content" id="filterContent">
         <form id="filterForm">
-          <!-- Search Filters -->
           <h3 class="filter-section-title">Search Filters</h3>
           <div class="filter-grid">
             <div class="filter-group">
@@ -62,7 +60,6 @@
             </div>
           </div>
 
-          <!-- Range Filters -->
           <h3 class="filter-section-title-spaced">Range Filters</h3>
           <div class="filter-grid">
             <div class="filter-group">
@@ -85,7 +82,6 @@
             </div>
           </div>
 
-          <!-- Sort Options -->
           <h3 class="filter-section-title-spaced">Sort Options</h3>
           <div class="filter-grid">
             <div class="filter-group">
@@ -109,15 +105,13 @@
             </div>
           </div>
 
-          <!-- Display Fields -->
           <h3 class="filter-section-title-spaced">Display Fields</h3>
           <div class="filter-group">
             <label for="fieldsProjection">Select Fields (comma-separated)</label>
-            <input type="text" id="fieldsProjection" placeholder="e.g., title,code,credits,instructor" 
+            <input type="text" id="fieldsProjection" placeholder="e.g., title,code,credits,instructor"
                    value="title,code,credits,instructor,schedule,room,capacity,enrolled">
           </div>
 
-          <!-- Buttons -->
           <div class="button-group">
             <button type="button" class="btn-apply" id="applyFiltersBtn">Apply Filters</button>
             <button type="button" class="btn-clear" id="clearFiltersBtn">Clear Filters</button>
@@ -125,15 +119,14 @@
         </form>
       </div>
     </div>
-    
+
     <div id="courses" class="courses-grid">
       {{COURSES_LIST}}
     </div>
-    
+
     <div class="add-course-container">
       <button class="btn btn-primary" id="addCourseBtn">Add New Course</button>
     </div>
-
   </main>
 
   <div id="courseModal" class="modal">
@@ -142,9 +135,7 @@
         <h2>Add New Course</h2>
         <button class="close-btn" id="closeModal">&times;</button>
       </div>
-      
       <div id="alertMessage" class="alert"></div>
-      
       <form id="courseForm">
         <div class="form-row">
           <div class="form-group">
@@ -156,7 +147,6 @@
             <input type="text" id="code" name="code" required>
           </div>
         </div>
-
         <div class="form-row">
           <div class="form-group">
             <label for="type">Course Type</label>
@@ -171,12 +161,10 @@
             <input type="number" id="credits" name="credits" min="0" max="10">
           </div>
         </div>
-
         <div class="form-group">
           <label for="description">Description</label>
           <textarea id="description" name="description"></textarea>
         </div>
-
         <div class="form-row">
           <div class="form-group">
             <label for="instructor">Instructor</label>
@@ -187,7 +175,6 @@
             <input type="email" id="email" name="email" placeholder="e.g., john@university.edu">
           </div>
         </div>
-
         <div class="form-row">
           <div class="form-group">
             <label for="schedule">Schedule</label>
@@ -198,7 +185,6 @@
             <input type="text" id="room" name="room" placeholder="e.g., 215 Tech Building">
           </div>
         </div>
-
         <div class="form-row">
           <div class="form-group">
             <label for="capacity">Capacity</label>
@@ -209,12 +195,10 @@
             <input type="number" id="enrolled" name="enrolled" min="0" value="0">
           </div>
         </div>
-
         <div class="form-group">
           <label for="prerequisites">Prerequisites</label>
           <input type="text" id="prerequisites" name="prerequisites" placeholder="e.g., Introduction to Programming">
         </div>
-
         <div class="modal-footer">
           <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
           <button type="submit" class="btn-submit">Add Course</button>
@@ -228,7 +212,6 @@
   </footer>
 
   <script src="/courses.js"></script>
-
   <script>
     async function refreshAuthLinks() {
       try {
@@ -237,7 +220,6 @@
         const authLink = document.getElementById('auth-link');
         const logoutLink = document.getElementById('logout-link');
         if (!authLink || !logoutLink) return;
-
         if (data && data.authenticated) {
           authLink.textContent = data.user && data.user.firstname ? data.user.firstname : 'Account';
           authLink.href = '#';
@@ -247,29 +229,17 @@
           authLink.href = '/login';
           logoutLink.style.display = 'none';
         }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    async function logout() {
-      try {
-        await fetch('/api/logout', { method: 'POST' });
       } catch (e) {}
+    }
+    async function logout() {
+      try { await fetch('/api/logout', { method: 'POST' }); } catch (e) {}
       window.location.href = '/login';
     }
-
     document.addEventListener('DOMContentLoaded', () => {
       const logoutLink = document.getElementById('logout-link');
-      if (logoutLink) {
-        logoutLink.addEventListener('click', (e) => {
-          e.preventDefault();
-          logout();
-        });
-      }
+      if (logoutLink) logoutLink.addEventListener('click', (e) => { e.preventDefault(); logout(); });
       refreshAuthLinks();
     });
   </script>
 </body>
 </html>
-
