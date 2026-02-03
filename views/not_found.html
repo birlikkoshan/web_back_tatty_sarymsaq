@@ -20,7 +20,8 @@
         <a href="/about">About</a>
         <a href="/courses">Courses</a>
         <a href="/contact">Contact</a>
-        <a href="/login">Login</a>
+        <a id="auth-link" href="/login">Login</a>
+        <a id="logout-link" href="#" style="display:none">Logout</a>
 
 
       </nav>
@@ -36,8 +37,8 @@
       </p>
 
       <div class="error-actions">
-        <a href="index.html" class="btn-primary">Back to Home</a>
-        <a href="contact.html" class="btn-outline">Contact Support</a>
+        <a href="/" class="btn-primary">Back to Home</a>
+        <a href="/contact" class="btn-outline">Contact Support</a>
       </div>
     </div>
   </section>
@@ -49,5 +50,6 @@
   </div>
 </footer>
 
+<script src="/auth.js" defer></script>
 </body>
 </html>

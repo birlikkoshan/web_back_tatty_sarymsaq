@@ -19,7 +19,8 @@
                     <a href="/about">About</a>
                     <a href="/courses">Courses</a>
                     <a href="/contact">Contact</a>
-                    <a href="/login">Login</a>
+                    <a id="auth-link" href="/login">Login</a>
+                    <a id="logout-link" href="#" style="display:none">Logout</a>
             </nav>
         </div>
     </header>
@@ -56,12 +57,18 @@
                 body: JSON.stringify(updatedData)
             })
             .then(response => {
+                if (response.status === 401) {
+                    alert('Please login to enroll');
+                    window.location.href = '/login';
+                    return null;
+                }
                 if (!response.ok) {
                     throw new Error('Failed to enroll');
                 }
                 return response.json();
             })
             .then(data => {
+                if (!data) return;
                 alert('Successfully enrolled in the course!');
                 // Reload page to show updated enrollment
                 location.reload();
@@ -72,5 +79,6 @@
             });
         }
     </script>
+    <script src="/auth.js" defer></script>
 </body>
 </html>

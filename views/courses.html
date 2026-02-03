@@ -212,34 +212,6 @@
   </footer>
 
   <script src="/courses.js" defer></script>
-  <script>
-    async function refreshAuthLinks() {
-      try {
-        const res = await fetch('/api/me');
-        const data = await res.json();
-        const authLink = document.getElementById('auth-link');
-        const logoutLink = document.getElementById('logout-link');
-        if (!authLink || !logoutLink) return;
-        if (data && data.authenticated) {
-          authLink.textContent = data.user && data.user.firstname ? data.user.firstname : 'Account';
-          authLink.href = '#';
-          logoutLink.style.display = 'inline-block';
-        } else {
-          authLink.textContent = 'Login';
-          authLink.href = '/login';
-          logoutLink.style.display = 'none';
-        }
-      } catch (e) {}
-    }
-    async function logout() {
-      try { await fetch('/api/logout', { method: 'POST' }); } catch (e) {}
-      window.location.href = '/login';
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-      const logoutLink = document.getElementById('logout-link');
-      if (logoutLink) logoutLink.addEventListener('click', (e) => { e.preventDefault(); logout(); });
-      refreshAuthLinks();
-    });
-  </script>
+  <script src="/auth.js" defer></script>
 </body>
 </html>

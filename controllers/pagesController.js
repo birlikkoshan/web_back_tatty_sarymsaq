@@ -22,10 +22,15 @@ function signupPage(req, res) {
   res.sendFile(path.join(VIEWS_DIR, "signup.html"));
 }
 
+function profilePage(req, res) {
+  res.sendFile(path.join(VIEWS_DIR, "profile.html"));
+}
+
 module.exports = {
   home,
   about,
   contactPage,
   loginPage,
   signupPage,
+  profilePage,
 };
