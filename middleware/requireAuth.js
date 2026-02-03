@@ -1,3 +1,4 @@
+// 401 Unauthorized: not authenticated (no or invalid session)
 function requireAuth(req, res, next) {
   if (req.session && req.session.userId) return next();
 
@@ -5,7 +6,6 @@ function requireAuth(req, res, next) {
   if (req.path.startsWith("/api/") || req.originalUrl.startsWith("/api/")) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-
   // pages redirect to login
   return res.redirect("/login");
 }
