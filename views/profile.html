@@ -234,16 +234,18 @@
         }
         const user = data.user || {};
         const firstname = user.firstname || 'Student';
+        const surname = user.surname || '';
         const email = user.email || 'N/A';
         const userId = user.id || 'N/A';
-        const initials = firstname
+        const fullName = surname ? `${firstname} ${surname}` : firstname;
+        const initials = fullName
           .split(' ')
           .map((part) => part[0])
           .join('')
           .slice(0, 2)
           .toUpperCase();
 
-        nameEl.textContent = `${firstname}'s Profile`;
+        nameEl.textContent = `${fullName}'s Profile`;
         subtitleEl.textContent = 'Your account information is ready to review.';
         avatarEl.textContent = initials || 'SM';
         emailPillEl.textContent = `Email: ${email}`;
@@ -253,6 +255,10 @@
           <div class="profile-item">
             <span>First name</span>
             <strong>${firstname}</strong>
+          </div>
+          <div class="profile-item">
+            <span>Surname</span>
+            <strong>${surname || '—'}</strong>
           </div>
           <div class="profile-item">
             <span>Email</span>

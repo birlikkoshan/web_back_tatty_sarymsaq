@@ -1,5 +1,6 @@
 const form = document.getElementById('form');
 const firstname_input = document.getElementById('firstname-input');
+const surname_input = document.getElementById('surname-input');
 const email_input = document.getElementById('email-input');
 const password_input = document.getElementById('password-input');
 const repeat_password_input = document.getElementById('repeat-password-input');
@@ -10,7 +11,7 @@ if (form) {
     let errors = [];
 
     if (firstname_input) {
-      errors = getSignupFormErrors(firstname_input.value, email_input.value, password_input.value, repeat_password_input.value);
+      errors = getSignupFormErrors(firstname_input.value, surname_input.value, email_input.value, password_input.value, repeat_password_input.value);
     } else {
       errors = getLoginFormErrors(email_input.value, password_input.value);
     }
@@ -24,13 +25,19 @@ if (form) {
   });
 }
 
-function getSignupFormErrors(firstname, email, password, repeatPassword) {
+function getSignupFormErrors(firstname, surname, email, password, repeatPassword) {
   let errors = [];
 
   if (!firstname || firstname.trim() === '') {
     errors.push('Firstname is required');
     if (firstname_input && firstname_input.parentElement) {
       firstname_input.parentElement.classList.add('incorrect');
+    }
+  }
+  if (!surname || surname.trim() === '') {
+    errors.push('Surname is required');
+    if (surname_input && surname_input.parentElement) {
+      surname_input.parentElement.classList.add('incorrect');
     }
   }
   if (!email || email.trim() === '') {
@@ -83,7 +90,7 @@ function getLoginFormErrors(email, password) {
   return errors;
 }
 
-const allInputs = [firstname_input, email_input, password_input, repeat_password_input].filter(input => input != null);
+const allInputs = [firstname_input, surname_input, email_input, password_input, repeat_password_input].filter(input => input != null);
 
 allInputs.forEach(input => {
   input.addEventListener('input', () => {

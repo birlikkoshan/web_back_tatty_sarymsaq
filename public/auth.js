@@ -13,7 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data && data.authenticated) {
         if (authLink) {
-          const name = data.user && data.user.firstname ? data.user.firstname : 'Profile';
+          const user = data.user || {};
+          const name = user.firstname
+            ? `${user.firstname}${user.surname ? ' ' + user.surname : ''}`
+            : 'Profile';
           authLink.textContent = name;
           authLink.href = '/profile';
         }
@@ -46,4 +49,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
   refreshAuthLinks();
 });
-

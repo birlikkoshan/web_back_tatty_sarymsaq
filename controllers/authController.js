@@ -21,11 +21,14 @@ async function signup(req, res) {
   try {
     const firstname =
       typeof req.body.firstname === "string" ? req.body.firstname.trim() : "";
+    const surname =
+      typeof req.body.surname === "string" ? req.body.surname.trim() : "";
     const email = normalizeEmail(req.body.email);
     const password = req.body.password;
 
     const errors = [];
     if (!firstname) errors.push("Firstname is required");
+    if (!surname) errors.push("Surname is required");
     if (!isValidEmail(email)) errors.push("Email is invalid");
     if (!isValidPassword(password))
       errors.push("Password must be at least 8 characters");
@@ -46,6 +49,7 @@ async function signup(req, res) {
     const now = new Date();
     const result = await insertUser({
       firstname,
+      surname,
       email,
       passwordHash,
       createdAt: now,
@@ -55,6 +59,7 @@ async function signup(req, res) {
     req.session.userId = String(result._id);
     req.session.email = email;
     req.session.firstname = firstname;
+    req.session.surname = surname;
 
     return res.status(201).json({ ok: true });
   } catch (err) {
@@ -85,6 +90,7 @@ async function login(req, res) {
     req.session.userId = String(user._id);
     req.session.email = user.email;
     req.session.firstname = user.firstname;
+    req.session.surname = user.surname || "";
 
     return res.status(200).json({ ok: true });
   } catch (err) {
@@ -116,6 +122,7 @@ function me(req, res) {
       id: req.session.userId,
       email: req.session.email,
       firstname: req.session.firstname,
+      surname: req.session.surname || "",
     },
   });
 }
