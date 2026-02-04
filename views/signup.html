@@ -75,12 +75,18 @@
       e.preventDefault();
 
       const firstname = document.getElementById('firstname-input').value.trim();
+      const surname = document.getElementById('surname-input').value.trim();
       const email = document.getElementById('email-input').value.trim();
       const password = document.getElementById('password-input').value;
       const repeatPassword = document.getElementById('repeat-password-input').value;
 
       if (!firstname) {
         errorMessage.textContent = 'Firstname is required';
+        errorMessage.style.color = 'red';
+        return;
+      }
+      if (!surname) {
+        errorMessage.textContent = 'Surname is required';
         errorMessage.style.color = 'red';
         return;
       }
@@ -104,7 +110,7 @@
         const response = await fetch('/api/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ firstname, email, password })
+          body: JSON.stringify({ firstname, surname, email, password })
         });
 
         const data = await response.json();
