@@ -25,6 +25,7 @@ async function signup(req, res) {
       typeof req.body.surname === "string" ? req.body.surname.trim() : "";
     const email = normalizeEmail(req.body.email);
     const password = req.body.password;
+    const role = "student";
 
     const errors = [];
     if (!firstname) errors.push("Firstname is required");
@@ -52,6 +53,7 @@ async function signup(req, res) {
       surname,
       email,
       passwordHash,
+      role,
       createdAt: now,
       updatedAt: now,
     });
@@ -91,6 +93,7 @@ async function login(req, res) {
     req.session.email = user.email;
     req.session.firstname = user.firstname;
     req.session.surname = user.surname || "";
+    req.session.role = user.role;
 
     return res.status(200).json({ ok: true });
   } catch (err) {
@@ -123,6 +126,7 @@ function me(req, res) {
       email: req.session.email,
       firstname: req.session.firstname,
       surname: req.session.surname || "",
+      role: req.session.role || "student",
     },
   });
 }
