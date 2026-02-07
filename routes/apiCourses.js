@@ -12,6 +12,12 @@ router.get(
   apiCoursesController.list,
 );
 router.get(
+  "/:id/students",
+  requireAuth,
+  requireRole("admin", "instructor"),
+  apiCoursesController.getCourseStudents,
+);
+router.get(
   "/:id",
   requireAuth,
   requireRole("student", "admin", "instructor"),
@@ -24,6 +30,30 @@ router.post(
   apiCoursesController.enroll,
 );
 router.post(
+  "/:id/assign/:studentId",
+  requireAuth,
+  requireRole("instructor"),
+  apiCoursesController.assignStudent,
+);
+router.post(
+  "/:id/add-student",
+  requireAuth,
+  requireRole("instructor"),
+  apiCoursesController.addStudent,
+);
+router.post(
+  "/:id/remove-student/:studentId",
+  requireAuth,
+  requireRole("instructor"),
+  apiCoursesController.removeStudentByInstructor,
+);
+router.post(
+  "/:id/drop",
+  requireAuth,
+  requireRole("student"),
+  apiCoursesController.drop,
+);
+router.post(
   "/",
   requireAuth,
   requireRole("admin", "instructor"),
@@ -32,7 +62,7 @@ router.post(
 router.put(
   "/:id",
   requireAuth,
-  requireRole("student"),
+  requireRole("admin"),
   apiCoursesController.update,
 );
 router.delete(

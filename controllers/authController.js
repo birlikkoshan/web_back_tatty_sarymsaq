@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const config = require("../config");
-const { findUserByEmail, insertUser } = require("../models/User");
+const { findUserByEmail, insertUser, findUsersByRole } = require("../models/User");
 
 function normalizeEmail(email) {
   if (typeof email !== "string") return "";
@@ -93,8 +93,7 @@ async function login(req, res) {
     req.session.email = user.email;
     req.session.firstname = user.firstname;
     req.session.surname = user.surname || "";
-    req.session.role = user.role;
-
+    req.session.role = user.role || "student";
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("Error in POST /api/login:", err);
@@ -131,9 +130,29 @@ function me(req, res) {
   });
 }
 
+async function listInstructors(req, res) {
+  try {
+    const docs = await findUsersByRole("instructor", {
+      firstname: 1,
+      surname: 1,
+      email: 1,
+    });
+    const list = docs.map((u) => ({
+      id: String(u._id),
+      name: [u.firstname, u.surname].filter(Boolean).join(" ").trim() || u.email,
+      email: u.email || "",
+    }));
+    return res.status(200).json(list);
+  } catch (err) {
+    console.error("Error in GET /api/instructors:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 module.exports = {
   signup,
   login,
   logout,
   me,
+  listInstructors,
 };

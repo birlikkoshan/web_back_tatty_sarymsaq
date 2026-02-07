@@ -15,6 +15,26 @@ async function findCourses(filter = {}, sort = null, projection = null) {
   return cursor.toArray();
 }
 
+async function countCourses(filter = {}) {
+  const col = await getCourseCollection();
+  return col.countDocuments(filter);
+}
+
+async function findCoursesPaginated(
+  filter = {},
+  sort = null,
+  projection = null,
+  skip = 0,
+  limit = 10,
+) {
+  const col = await getCourseCollection();
+  let cursor = col.find(filter);
+  if (sort) cursor = cursor.sort(sort);
+  if (projection) cursor = cursor.project(projection);
+  cursor = cursor.skip(skip).limit(limit);
+  return cursor.toArray();
+}
+
 async function findCourseById(id) {
   const col = await getCourseCollection();
   return col.findOne({ _id: new ObjectId(id) });
@@ -60,12 +80,76 @@ async function incrementEnrollment(id) {
   return result.value || null;
 }
 
+async function decrementEnrollment(id) {
+  const col = await getCourseCollection();
+  const result = await col.findOneAndUpdate(
+    {
+      _id: new ObjectId(id),
+      enrolled: { $gt: 0 },
+    },
+    { $inc: { enrolled: -1 }, $set: { updatedAt: new Date() } },
+    { returnDocument: "after" },
+  );
+  return result.value || null;
+}
+
+/** Add student to course by ID. Fails if already enrolled or at capacity. */
+async function addStudentToCourse(courseId, studentId) {
+  const col = await getCourseCollection();
+  const sid = new ObjectId(studentId);
+  const result = await col.findOneAndUpdate(
+    {
+      _id: new ObjectId(courseId),
+      $expr: { $lt: [{ $size: { $ifNull: ["$studentIds", []] } }, "$capacity"] },
+      studentIds: { $nin: [sid] },
+    },
+    {
+      $addToSet: { studentIds: sid },
+      $inc: { enrolled: 1 },
+      $set: { updatedAt: new Date() },
+    },
+    { returnDocument: "after" },
+  );
+  return result.value || null;
+}
+
+/** Remove student from course by ID. */
+async function removeStudentFromCourse(courseId, studentId) {
+  const col = await getCourseCollection();
+  const sid = new ObjectId(studentId);
+  const result = await col.findOneAndUpdate(
+    {
+      _id: new ObjectId(courseId),
+      studentIds: sid,
+    },
+    {
+      $pull: { studentIds: sid },
+      $inc: { enrolled: -1 },
+      $set: { updatedAt: new Date() },
+    },
+    { returnDocument: "after" },
+  );
+  return result.value || null;
+}
+
+/** Find all courses that contain this student (by studentId). */
+async function findCoursesContainingStudent(studentId) {
+  const col = await getCourseCollection();
+  return col.find({ studentIds: new ObjectId(studentId) }).toArray();
+}
+
 module.exports = {
   findCourses,
+  findCoursesPaginated,
+  countCourses,
   findCourseById,
   findCourseByIdProjection,
   insertCourse,
   updateCourse,
   deleteCourse,
   incrementEnrollment,
+  decrementEnrollment,
+  addStudentToCourse,
+  removeStudentFromCourse,
+  findCoursesContainingStudent,
 };

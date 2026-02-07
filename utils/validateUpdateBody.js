@@ -1,4 +1,4 @@
-const { isValidEmail } = require("./isValidEmail");
+const { isValidObjectId } = require("./isValidObjectId");
 
 /**
  * Validate course update body
@@ -55,20 +55,6 @@ function validateUpdateBody(body) {
     else update.enrolled = v;
   }
 
-  if (body.instructor !== undefined) {
-    const v = typeof body.instructor === "string" ? body.instructor.trim() : "";
-    update.instructor = v;
-  }
-
-  if (body.email !== undefined) {
-    const v = typeof body.email === "string" ? body.email.trim() : "";
-    if (v && !isValidEmail(v)) {
-      errors.push("email must be a valid email");
-    } else {
-      update.email = v;
-    }
-  }
-
   if (body.schedule !== undefined) {
     const v = typeof body.schedule === "string" ? body.schedule.trim() : "";
     update.schedule = v;
@@ -83,6 +69,16 @@ function validateUpdateBody(body) {
     const v =
       typeof body.prerequisites === "string" ? body.prerequisites.trim() : "";
     update.prerequisites = v;
+  }
+
+  if (body.instructorId !== undefined) {
+    const v =
+      typeof body.instructorId === "string" ? body.instructorId.trim() : "";
+    if (v && !isValidObjectId(v)) {
+      errors.push("instructorId must be a valid MongoDB ObjectId");
+    } else {
+      update.instructorId = v || null;
+    }
   }
 
   if (errors.length > 0) return { ok: false, errors };

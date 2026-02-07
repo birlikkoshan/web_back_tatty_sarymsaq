@@ -18,8 +18,11 @@ function buildFilter(query) {
     filter.code = { $regex: query.code.trim(), $options: "i" };
   }
 
-  if (typeof query.instructor === "string" && query.instructor.trim() !== "") {
-    filter.instructor = { $regex: query.instructor.trim(), $options: "i" };
+  if (typeof query.instructorId === "string" && query.instructorId.trim() !== "") {
+    const { ObjectId } = require("mongodb");
+    if (ObjectId.isValid(query.instructorId.trim())) {
+      filter.instructorId = new ObjectId(query.instructorId.trim());
+    }
   }
 
   const minCredits = Number(query.minCredits);

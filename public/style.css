@@ -78,6 +78,17 @@ nav {
   font-weight: 500;
 }
 
+.btn-drop {
+  background: #ef4444;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
 .btn-outline {
   border: 2px solid #2563eb;
   color: #2563eb;
@@ -417,6 +428,13 @@ footer {
   background: #f9fafb;
   text-align: center;
   flex-shrink: 0;
+}
+
+.course-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .course-description { color: #555; margin-bottom: 15px; line-height: 1.6; }

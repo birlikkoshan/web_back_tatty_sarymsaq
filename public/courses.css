@@ -132,3 +132,16 @@
 .filter-section-title-spaced {
   margin: 20px 0 15px 0;
 }
+
+.courses-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 40px;
+}
+
+.pagination-label {
+  font-weight: 600;
+  color: #374151;
+}

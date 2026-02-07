@@ -1,12 +1,20 @@
 const fs = require("fs");
 const path = require("path");
 const { findCourseById } = require("../models/Course");
+const { findUserById } = require("../models/User");
 const { escapeHtml, calculateStats, generateCourseInfo, isValidObjectId } = require("../utils");
 
 const VIEWS_DIR = path.join(__dirname, "../views");
 
 function listPage(req, res) {
-  const templatePath = path.join(VIEWS_DIR, "courses.html");
+  const role = req.session?.role;
+  const templateFile =
+    role === "admin"
+      ? "admin-courses.html"
+      : role === "instructor"
+        ? "instructor-courses.html"
+        : "student-courses.html";
+  const templatePath = path.join(VIEWS_DIR, templateFile);
   fs.readFile(templatePath, "utf8", (err, template) => {
     if (err) {
       console.error("Error reading courses template:", err);
@@ -51,6 +59,13 @@ function detailPage(req, res) {
         }
 
         const courseData = { ...item, id: String(item._id) };
+        if (item.instructorId) {
+          const instructor = await findUserById(String(item.instructorId));
+          if (instructor) {
+            courseData.instructor = [instructor.firstname, instructor.surname].filter(Boolean).join(" ").trim() || instructor.email || "N/A";
+            courseData.email = instructor.email || "";
+          }
+        }
         const stats = calculateStats(courseData);
         const enrollmentPath = path.join(VIEWS_DIR, "enrollment.html");
 
@@ -62,6 +77,8 @@ function detailPage(req, res) {
           const courseInfo = generateCourseInfo(courseData, stats);
           let html = template.replace(/{{COURSE_INFO}}/g, courseInfo);
           html = html.replace(/{{COURSE_TITLE}}/g, escapeHtml(courseData.title || "Course"));
+          html = html.replace(/{{USER_ROLE}}/g, escapeHtml(req.session?.role || "student"));
+          html = html.replace(/{{USER_ID}}/g, escapeHtml(req.session?.userId || ""));
           res.send(html);
         });
       } catch (error) {

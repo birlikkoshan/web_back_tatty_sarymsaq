@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Courses</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/courses.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <div class="logo">StudentMS</div>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a class="choosed-link" href="/instructor-courses">My Courses</a>
+        <a href="/contact">Contact</a>
+        <a id="auth-link" href="/login">Login</a>
+        <a id="logout-link" href="#" style="display:none">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1>My Courses</h1>
+
+    <div id="courses" class="courses-grid" data-show-delete="false" data-view-label="Course Details">
+      {{COURSES_LIST}}
+    </div>
+  </main>
+
+  <div id="courseModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add New Course</h2>
+        <button class="close-btn" id="closeModal">&times;</button>
+      </div>
+      <div id="alertMessage" class="alert"></div>
+      <form id="courseForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="title">Title *</label>
+            <input type="text" id="title" name="title" required>
+          </div>
+          <div class="form-group">
+            <label for="code">Course Code *</label>
+            <input type="text" id="code" name="code" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="type">Course Type</label>
+            <select id="type" name="type">
+              <option value="course">Course</option>
+              <option value="lab">Lab</option>
+              <option value="seminar">Seminar</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="credits">Credits</label>
+            <input type="number" id="credits" name="credits" min="0" max="10">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="instructorId">Instructor</label>
+            <select id="instructorId" name="instructorId">
+              <option value="">Select instructor...</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="schedule">Schedule</label>
+            <input type="text" id="schedule" name="schedule" placeholder="e.g., Mon & Wed 10:00-11:30">
+          </div>
+          <div class="form-group">
+            <label for="room">Room</label>
+            <input type="text" id="room" name="room" placeholder="e.g., 215 Tech Building">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="capacity">Capacity</label>
+            <input type="number" id="capacity" name="capacity" min="0">
+          </div>
+          <div class="form-group">
+            <label for="enrolled">Enrolled</label>
+            <input type="number" id="enrolled" name="enrolled" min="0" value="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="prerequisites">Prerequisites</label>
+          <input type="text" id="prerequisites" name="prerequisites" placeholder="e.g., Introduction to Programming">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn-submit">Add Course</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-container">&copy; 2025 Student Management System</div>
+  </footer>
+
+  <script src="/courses.js" defer></script>
+  <script src="/auth.js" defer></script>
+</body>
+</html>

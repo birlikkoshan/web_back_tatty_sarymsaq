@@ -26,6 +26,18 @@ function profilePage(req, res) {
   res.sendFile(path.join(VIEWS_DIR, "profile.html"));
 }
 
+function myCoursesStudentPage(req, res) {
+  res.sendFile(path.join(VIEWS_DIR, "My-courses-student.html"));
+}
+
+function instructorCoursesPage(req, res) {
+  res.sendFile(path.join(VIEWS_DIR, "instructor-courses.html"));
+}
+
+function adminCoursesPage(req, res) {
+  res.sendFile(path.join(VIEWS_DIR, "admin-courses.html"));
+}
+
 module.exports = {
   home,
   about,
@@ -33,4 +45,7 @@ module.exports = {
   loginPage,
   signupPage,
   profilePage,
+  myCoursesStudentPage,
+  instructorCoursesPage,
+  adminCoursesPage,
 };

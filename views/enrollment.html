@@ -13,14 +13,14 @@
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/enrollment.css" />
   </head>
-  <body>
+  <body data-user-role="{{USER_ROLE}}" data-user-id="{{USER_ID}}">
     <header class="header">
       <div class="container header-inner">
         <div class="logo">StudentMS</div>
         <nav class="nav">
           <a class="choosed-link" href="/">Home</a>
           <a href="/about">About</a>
-          <a href="/courses">Courses</a>
+          <a id="courses-nav-link" href="/courses">Courses</a>
           <a href="/contact">Contact</a>
           <a id="auth-link" href="/login">Login</a>
           <a id="logout-link" href="#" style="display: none">Logout</a>
@@ -37,6 +37,303 @@
     </footer>
 
     <script>
+      let currentUserRole = document.body?.dataset?.userRole || "student";
+      let currentUserId = document.body?.dataset?.userId || "";
+      let instructorOptions = [];
+      let pendingChanges = {};
+
+      function getCourseId() {
+        const header = document.querySelector(".course-detail-header");
+        return header?.dataset?.courseId || "";
+      }
+
+      function getCourseStudentIds() {
+        const header = document.querySelector(".course-detail-header");
+        const raw = header?.dataset?.studentIds || "";
+        return raw
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean);
+      }
+
+      function getInstructorId() {
+        const header = document.querySelector(".course-detail-header");
+        return header?.dataset?.instructorId || "";
+      }
+
+      function escapeHtml(text) {
+        if (text == null) return "";
+        const div = document.createElement("div");
+        div.textContent = String(text);
+        return div.innerHTML;
+      }
+
+      async function updateCourse(courseId, payload) {
+        const response = await fetch(`/api/courses/${courseId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+          alert("Please login");
+          window.location.href = "/login";
+          return null;
+        }
+        if (response.status === 403) {
+          alert(data?.error || "Not accessible for your role");
+          return null;
+        }
+        if (!response.ok) {
+          const msg = data?.error || "Failed to update course";
+          const details = Array.isArray(data?.details) ? `: ${data.details.join("; ")}` : "";
+          throw new Error(msg + details);
+        }
+        return data;
+      }
+
+      function updateFieldUI(field, value) {
+        const fieldEl = document.getElementById(`field-${field}`);
+        if (!fieldEl) return;
+        fieldEl.textContent = value == null || value === "" ? "N/A" : String(value);
+      }
+
+      function refreshSaveButtonState() {
+        const primaryBtn = document.getElementById("coursePrimaryAction");
+        if (!primaryBtn || currentUserRole !== "admin") return;
+        const hasPending = Object.keys(pendingChanges).length > 0;
+        primaryBtn.textContent = hasPending ? "Save Changes *" : "Save Changes";
+      }
+
+      async function editCourseField(field, inputType) {
+        if (currentUserRole !== "admin") return;
+        const fieldEl = document.getElementById(`field-${field}`);
+        if (!fieldEl) return;
+
+        const currentValue = fieldEl.textContent.trim() === "N/A" ? "" : fieldEl.textContent.trim();
+        const nextValue =
+          inputType === "textarea"
+            ? prompt("Enter new value:", currentValue)
+            : prompt("Enter new value:", currentValue);
+        if (nextValue === null) return;
+
+        if (inputType === "number") {
+          const parsed = Number(nextValue);
+          if (Number.isNaN(parsed)) {
+            alert("Please enter a valid number");
+            return;
+          }
+          pendingChanges[field] = parsed;
+          updateFieldUI(field, parsed);
+        } else {
+          pendingChanges[field] = nextValue;
+          updateFieldUI(field, nextValue);
+        }
+        refreshSaveButtonState();
+      }
+
+      async function loadInstructorOptions() {
+        const select = document.getElementById("instructorSelect");
+        const emailPreview = document.getElementById("instructorEmailPreview");
+        if (!select || !emailPreview) return;
+
+        try {
+          const res = await fetch("/api/instructors");
+          const data = await res.json().catch(() => []);
+          if (!res.ok || !Array.isArray(data)) return;
+
+          instructorOptions = data;
+          const currentInstructorId = getInstructorId();
+          data.forEach((inst) => {
+            const opt = document.createElement("option");
+            opt.value = inst.id || "";
+            opt.textContent = inst.name || inst.email || "Instructor";
+            opt.dataset.email = inst.email || "";
+            opt.dataset.name = inst.name || "";
+            if (inst.id && currentInstructorId && String(inst.id) === String(currentInstructorId)) {
+              opt.selected = true;
+              emailPreview.value = inst.email || "";
+            }
+            select.appendChild(opt);
+          });
+
+          select.addEventListener("change", () => {
+            const selected = select.options[select.selectedIndex];
+            emailPreview.value = selected?.dataset?.email || "";
+          });
+        } catch (_) {}
+      }
+
+      async function loadCourseStudents(courseId) {
+        const listEl = document.getElementById("studentsList");
+        const loadingEl = document.getElementById("studentsLoadingText");
+        if (!listEl || !loadingEl) return;
+
+        try {
+          const res = await fetch(`/api/courses/${courseId}/students`, {
+            credentials: "include",
+          });
+          const data = await res.json().catch(() => []);
+
+          if (!res.ok) {
+            loadingEl.textContent = "Failed to load students";
+            return;
+          }
+
+          const students = Array.isArray(data) ? data : [];
+          if (students.length === 0) {
+            loadingEl.textContent = "No students assigned yet";
+            listEl.innerHTML = "";
+            return;
+          }
+
+          loadingEl.style.display = "none";
+          listEl.innerHTML = students
+            .map((s) => {
+              const fullName = [s.firstname, s.surname].filter(Boolean).join(" ").trim() || "Unnamed student";
+              const email = s.email || "No email";
+              return `
+                <div class="students-row">
+                  <div class="students-name">${escapeHtml(fullName)}</div>
+                  <div>${escapeHtml(email)}</div>
+                  <div>
+                    <button
+                      type="button"
+                      class="student-remove-btn"
+                      title="Remove student"
+                      onclick="removeStudentByInstructor('${courseId}', '${escapeHtml(s.id || "")}')"
+                    >❌</button>
+                  </div>
+                </div>
+              `;
+            })
+            .join("");
+        } catch (_) {
+          loadingEl.textContent = "Failed to load students";
+        }
+      }
+
+      window.removeStudentByInstructor = async function removeStudentByInstructor(courseId, studentId) {
+        if (currentUserRole !== "instructor") return;
+        if (!studentId) return;
+        if (!confirm("Remove this student from the course?")) return;
+
+        try {
+          const response = await fetch(`/api/courses/${courseId}/remove-student/${studentId}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+          const data = await response.json().catch(() => ({}));
+          if (response.status === 401) {
+            alert("Please login");
+            window.location.href = "/login";
+            return;
+          }
+          if (response.status === 403) {
+            alert("Only instructors can remove students");
+            return;
+          }
+          if (!response.ok) {
+            alert(data?.error || "Failed to remove student");
+            return;
+          }
+          alert("Student removed from course");
+          location.reload();
+        } catch (error) {
+          alert("Error removing student: " + error.message);
+        }
+      };
+
+      async function saveInstructorSelection() {
+        if (currentUserRole !== "admin") return;
+        const select = document.getElementById("instructorSelect");
+        const emailPreview = document.getElementById("instructorEmailPreview");
+        if (!select || !emailPreview) return;
+
+        const instructorId = select.value.trim();
+        const selected = select.options[select.selectedIndex];
+        const name = selected?.dataset?.name || select.options[select.selectedIndex]?.textContent || "";
+        const email = emailPreview.value.trim();
+        if (!instructorId) {
+          alert("Please select an instructor");
+          return;
+        }
+
+        pendingChanges.instructorId = instructorId;
+        updateFieldUI("instructor", name);
+        updateFieldUI("email", email);
+        const emailLink = document.getElementById("field-email-link");
+        if (emailLink) emailLink.href = `mailto:${escapeHtml(email)}`;
+        refreshSaveButtonState();
+      }
+
+      window.editCourseField = editCourseField;
+      window.saveInstructorSelection = saveInstructorSelection;
+      window.addStudentById = async function addStudentById(courseId) {
+        const input = document.getElementById("studentIdInput");
+        const studentId = input?.value?.trim();
+        if (!studentId) {
+          alert("Enter studentId");
+          return;
+        }
+        try {
+          const response = await fetch(`/api/courses/${courseId}/add-student`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ studentId }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (response.status === 401) {
+            alert("Please login");
+            window.location.href = "/login";
+            return;
+          }
+          if (response.status === 403) {
+            alert(data?.error || "Not accessible for your role");
+            return;
+          }
+          if (response.status === 409) {
+            alert("Course is full");
+            return;
+          }
+          if (!response.ok) {
+            alert(data?.error || "Failed to add student");
+            return;
+          }
+          alert("Student added to course");
+          if (input) input.value = "";
+          location.reload();
+        } catch (error) {
+          alert("Error adding student: " + error.message);
+        }
+      };
+      window.saveChanges = async function saveChanges() {
+        if (currentUserRole !== "admin") return;
+        const courseId = getCourseId();
+        if (!courseId) return;
+        if (Object.keys(pendingChanges).length === 0) {
+          alert("No changes to save");
+          return;
+        }
+        try {
+          const updated = await updateCourse(courseId, pendingChanges);
+          if (!updated) return;
+          pendingChanges = {};
+          refreshSaveButtonState();
+          alert("Changes saved");
+          location.reload();
+        } catch (error) {
+          alert("Save failed: " + error.message);
+        }
+      };
+
       function enrollCourse(courseId) {
         // Send POST request to enroll
         fetch(`/api/courses/${courseId}/enroll`, {
@@ -45,29 +342,30 @@
             "Content-Type": "application/json",
           },
         })
-          .then((response) => {
+          .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
             if (response.status === 401) {
               alert("Please login to enroll");
               window.location.href = "/login";
               return null;
             }
             if (response.status === 403) {
-              alert("Only students can enroll");
+              alert(data?.error || "Not accessible for your role");
               return null;
             }
             if (response.status === 409) {
-              alert("This course is full. No more spots available.");
+              alert(data?.error || "Cannot enroll in this course.");
               return null;
             }
             if (!response.ok) {
-              throw new Error("Failed to enroll");
+              alert(data?.error || "Failed to enroll");
+              return null;
             }
-            return response.json();
+            return data;
           })
           .then((data) => {
             if (!data) return;
             alert("Successfully enrolled in the course!");
-            // Reload page to show updated enrollment
             location.reload();
           })
           .catch((error) => {
@@ -75,6 +373,68 @@
             alert("Error enrolling in course: " + error.message);
           });
       }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          // Apply role-dependent UI immediately from server-rendered role.
+          const applyRoleUI = () => {
+            const coursesNavLink = document.getElementById("courses-nav-link");
+            if (coursesNavLink) {
+              if (currentUserRole === "admin") {
+                coursesNavLink.href = "/admin-courses";
+              } else if (currentUserRole === "instructor") {
+                coursesNavLink.href = "/instructor-courses";
+              } else {
+                coursesNavLink.href = "/courses";
+              }
+            }
+
+            if (currentUserRole === "admin") {
+              document.querySelectorAll(".admin-only").forEach((el) => {
+                el.style.display = "";
+              });
+            }
+            const primaryBtn = document.getElementById("coursePrimaryAction");
+            if (primaryBtn && currentUserRole === "admin") {
+              primaryBtn.textContent = "Save Changes";
+              primaryBtn.setAttribute("onclick", "saveChanges()");
+              primaryBtn.style.display = "";
+              refreshSaveButtonState();
+            } else if (primaryBtn && currentUserRole === "student") {
+              const fromMyCourses =
+                new URLSearchParams(window.location.search).get("from") ===
+                "my-courses";
+              primaryBtn.style.display = fromMyCourses ? "none" : "";
+            } else if (primaryBtn && currentUserRole !== "student") {
+              primaryBtn.style.display = "none";
+            }
+            if (currentUserRole === "instructor") {
+              document.querySelectorAll(".instructor-only").forEach((el) => {
+                el.style.display = "";
+              });
+              const courseId = getCourseId();
+              if (courseId) loadCourseStudents(courseId);
+            } else {
+              document.querySelectorAll(".instructor-only").forEach((el) => {
+                el.style.display = "none";
+              });
+            }
+          };
+
+          applyRoleUI();
+
+          const res = await fetch("/api/me", { credentials: "include" });
+          const data = await res.json().catch(() => ({}));
+          if (data?.authenticated && data?.user?.role) {
+            currentUserRole = data.user.role;
+            currentUserId = String(data.user.id || "");
+            applyRoleUI();
+          }
+          if (currentUserRole === "admin") {
+            loadInstructorOptions();
+          }
+        } catch (_) {}
+      });
     </script>
     <script src="/auth.js" defer></script>
   </body>
