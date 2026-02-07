@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/enrollment.css" />
   </head>
-  <body>
+  <body data-user-role="{{USER_ROLE}}">
     <header class="header">
       <div class="container header-inner">
         <div class="logo">StudentMS</div>
@@ -37,7 +37,7 @@
     </footer>
 
     <script>
-      let currentUserRole = "student";
+      let currentUserRole = document.body?.dataset?.userRole || "student";
       let instructorOptions = [];
       let pendingChanges = {};
 
@@ -270,38 +270,47 @@
 
       document.addEventListener("DOMContentLoaded", async () => {
         try {
+          // Apply role-dependent UI immediately from server-rendered role.
+          const applyRoleUI = () => {
+            const coursesNavLink = document.getElementById("courses-nav-link");
+            if (coursesNavLink) {
+              if (currentUserRole === "admin") {
+                coursesNavLink.href = "/admin-courses";
+              } else if (currentUserRole === "instructor") {
+                coursesNavLink.href = "/instructor-courses";
+              } else {
+                coursesNavLink.href = "/courses";
+              }
+            }
+
+            if (currentUserRole === "admin") {
+              document.querySelectorAll(".admin-only").forEach((el) => {
+                el.style.display = "";
+              });
+            }
+            const primaryBtn = document.getElementById("coursePrimaryAction");
+            if (primaryBtn && currentUserRole === "admin") {
+              primaryBtn.textContent = "Save Changes";
+              primaryBtn.setAttribute("onclick", "saveChanges()");
+              primaryBtn.style.display = "";
+              refreshSaveButtonState();
+            } else if (primaryBtn && currentUserRole !== "student") {
+              primaryBtn.style.display = "none";
+            }
+            if (currentUserRole === "instructor") {
+              document.querySelectorAll(".instructor-only").forEach((el) => {
+                el.style.display = "";
+              });
+            }
+          };
+
+          applyRoleUI();
+
           const res = await fetch("/api/me", { credentials: "include" });
           const data = await res.json().catch(() => ({}));
-          currentUserRole = data?.user?.role || "student";
-          const coursesNavLink = document.getElementById("courses-nav-link");
-          if (coursesNavLink) {
-            if (currentUserRole === "admin") {
-              coursesNavLink.href = "/admin-courses";
-            } else if (currentUserRole === "instructor") {
-              coursesNavLink.href = "/instructor-courses";
-            } else {
-              coursesNavLink.href = "/courses";
-            }
-          }
-
-          if (currentUserRole === "admin") {
-            document.querySelectorAll(".admin-only").forEach((el) => {
-              el.style.display = "";
-            });
-          }
-          const primaryBtn = document.getElementById("coursePrimaryAction");
-          if (primaryBtn && currentUserRole === "admin") {
-            primaryBtn.textContent = "Save Changes";
-            primaryBtn.setAttribute("onclick", "saveChanges()");
-            primaryBtn.style.display = "";
-            refreshSaveButtonState();
-          } else if (primaryBtn && currentUserRole !== "student") {
-            primaryBtn.style.display = "none";
-          }
-          if (currentUserRole === "instructor") {
-            document.querySelectorAll(".instructor-only").forEach((el) => {
-              el.style.display = "";
-            });
+          if (data?.authenticated && data?.user?.role) {
+            currentUserRole = data.user.role;
+            applyRoleUI();
           }
           if (currentUserRole === "admin") {
             loadInstructorOptions();

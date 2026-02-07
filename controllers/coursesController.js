@@ -69,6 +69,7 @@ function detailPage(req, res) {
           const courseInfo = generateCourseInfo(courseData, stats);
           let html = template.replace(/{{COURSE_INFO}}/g, courseInfo);
           html = html.replace(/{{COURSE_TITLE}}/g, escapeHtml(courseData.title || "Course"));
+          html = html.replace(/{{USER_ROLE}}/g, escapeHtml(req.session?.role || "student"));
           res.send(html);
         });
       } catch (error) {
