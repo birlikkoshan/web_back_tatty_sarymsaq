@@ -93,6 +93,51 @@ async function decrementEnrollment(id) {
   return result.value || null;
 }
 
+/** Add student to course by ID. Fails if already enrolled or at capacity. */
+async function addStudentToCourse(courseId, studentId) {
+  const col = await getCourseCollection();
+  const sid = new ObjectId(studentId);
+  const result = await col.findOneAndUpdate(
+    {
+      _id: new ObjectId(courseId),
+      $expr: { $lt: [{ $size: { $ifNull: ["$studentIds", []] } }, "$capacity"] },
+      studentIds: { $nin: [sid] },
+    },
+    {
+      $addToSet: { studentIds: sid },
+      $inc: { enrolled: 1 },
+      $set: { updatedAt: new Date() },
+    },
+    { returnDocument: "after" },
+  );
+  return result.value || null;
+}
+
+/** Remove student from course by ID. */
+async function removeStudentFromCourse(courseId, studentId) {
+  const col = await getCourseCollection();
+  const sid = new ObjectId(studentId);
+  const result = await col.findOneAndUpdate(
+    {
+      _id: new ObjectId(courseId),
+      studentIds: sid,
+    },
+    {
+      $pull: { studentIds: sid },
+      $inc: { enrolled: -1 },
+      $set: { updatedAt: new Date() },
+    },
+    { returnDocument: "after" },
+  );
+  return result.value || null;
+}
+
+/** Find all courses that contain this student (by studentId). */
+async function findCoursesContainingStudent(studentId) {
+  const col = await getCourseCollection();
+  return col.find({ studentIds: new ObjectId(studentId) }).toArray();
+}
+
 module.exports = {
   findCourses,
   findCoursesPaginated,
@@ -104,4 +149,7 @@ module.exports = {
   deleteCourse,
   incrementEnrollment,
   decrementEnrollment,
+  addStudentToCourse,
+  removeStudentFromCourse,
+  findCoursesContainingStudent,
 };

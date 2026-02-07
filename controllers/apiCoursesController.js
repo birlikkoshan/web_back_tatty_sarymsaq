@@ -18,8 +18,41 @@ const {
   deleteCourse,
   incrementEnrollment,
   decrementEnrollment,
+  addStudentToCourse,
+  removeStudentFromCourse,
+  findCoursesContainingStudent,
 } = require("../models/Course");
-const { findUserById } = require("../models/User");
+const { findUserById, findUsersByIds } = require("../models/User");
+
+const MAX_COURSES_PER_STUDENT = 5;
+const MAX_NON_MAJOR_COURSES = 2;
+
+async function checkEnrollmentLimits(studentId, newCourseDepartment) {
+  const student = await findUserById(studentId);
+  if (!student) return { ok: false, error: "Student not found" };
+  const studentDept = (student.department || "").toLowerCase();
+  const newDept = (newCourseDepartment || "").toLowerCase();
+
+  const enrolledCourses = await findCoursesContainingStudent(studentId);
+  if (enrolledCourses.length >= MAX_COURSES_PER_STUDENT) {
+    return {
+      ok: false,
+      error: `Cannot enroll in more than ${MAX_COURSES_PER_STUDENT} courses`,
+    };
+  }
+  const nonMajorCount = enrolledCourses.filter((c) => {
+    const courseDept = (c.department || "").toLowerCase();
+    return courseDept !== studentDept;
+  }).length;
+  const thisIsNonMajor = newDept !== studentDept;
+  if (thisIsNonMajor && nonMajorCount >= MAX_NON_MAJOR_COURSES) {
+    return {
+      ok: false,
+      error: `Cannot enroll in more than ${MAX_NON_MAJOR_COURSES} courses outside your major (department)`,
+    };
+  }
+  return { ok: true };
+}
 
 async function list(req, res) {
   try {
@@ -76,6 +109,47 @@ async function getById(req, res) {
   } catch (err) {
     console.error("Error in GET /api/courses/:id:", err);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function getCourseStudents(req, res) {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: "Invalid id" });
+    }
+
+    const course = await findCourseByIdProjection(id, { studentIds: 1 });
+    if (!course) return res.status(404).json({ error: "Not Found" });
+
+    const ids = course.studentIds || [];
+    if (ids.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    const users = await findUsersByIds(ids, {
+      firstname: 1,
+      surname: 1,
+      email: 1,
+      department: 1,
+    });
+    const byId = new Map(users.map((u) => [String(u._id), u]));
+    const list = ids.map((oid) => {
+      const u = byId.get(String(oid));
+      return u
+        ? {
+            id: String(u._id),
+            firstname: u.firstname,
+            surname: u.surname,
+            email: u.email,
+            department: u.department || "",
+          }
+        : { id: String(oid), firstname: "", surname: "", email: "", department: "" };
+    });
+    return res.status(200).json(list);
+  } catch (err) {
+    console.error("Error in GET /api/courses/:id/students:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
@@ -153,25 +227,40 @@ async function update(req, res) {
 async function enroll(req, res) {
   try {
     const { id } = req.params;
+    const studentId = req.session?.userId;
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid id" });
     }
+    if (!studentId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-    const existing = await findCourseByIdProjection(id, {
+    const course = await findCourseByIdProjection(id, {
       capacity: 1,
       enrolled: 1,
+      studentIds: 1,
+      department: 1,
     });
-    if (!existing) return res.status(404).json({ error: "Not Found" });
+    if (!course) return res.status(404).json({ error: "Not Found" });
 
-    const capacity = existing.capacity ?? 0;
-    const enrolled = existing.enrolled ?? 0;
-    if (enrolled >= capacity) {
+    const studentIds = course.studentIds || [];
+    if (studentIds.some((sid) => String(sid) === studentId)) {
+      return res.status(409).json({ error: "Already enrolled in this course" });
+    }
+
+    const capacity = course.capacity ?? 0;
+    if (studentIds.length >= capacity) {
       return res.status(409).json({ error: "Course is full" });
     }
 
-    const updated = await incrementEnrollment(id);
+    const limits = await checkEnrollmentLimits(studentId, course.department);
+    if (!limits.ok) {
+      return res.status(409).json({ error: limits.error });
+    }
+
+    const updated = await addStudentToCourse(id, studentId);
     if (!updated) {
-      return res.status(409).json({ error: "Course is full" });
+      return res.status(409).json({ error: "Course is full or already enrolled" });
     }
     return res.status(200).json(toPublic(updated));
   } catch (err) {
@@ -199,21 +288,25 @@ async function remove(req, res) {
 async function drop(req, res) {
   try {
     const { id } = req.params;
+    const studentId = req.session?.userId;
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid id" });
     }
-
-    const existing = await findCourseByIdProjection(id, { enrolled: 1 });
-    if (!existing) return res.status(404).json({ error: "Not Found" });
-
-    const enrolled = existing.enrolled ?? 0;
-    if (enrolled <= 0) {
-      return res.status(409).json({ error: "No active enrollments to drop" });
+    if (!studentId) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const updated = await decrementEnrollment(id);
+    const course = await findCourseByIdProjection(id, { studentIds: 1 });
+    if (!course) return res.status(404).json({ error: "Not Found" });
+
+    const studentIds = course.studentIds || [];
+    if (!studentIds.some((sid) => String(sid) === studentId)) {
+      return res.status(409).json({ error: "Not enrolled in this course" });
+    }
+
+    const updated = await removeStudentFromCourse(id, studentId);
     if (!updated) {
-      return res.status(409).json({ error: "No active enrollments to drop" });
+      return res.status(409).json({ error: "Not enrolled in this course" });
     }
     return res.status(200).json(toPublic(updated));
   } catch (err) {
@@ -253,26 +346,36 @@ async function addStudentLogic(req, res, courseId, studentId) {
     }
 
     const student = await findUserById(studentId);
-    if (!student || student.role !== "student") {
+    if (!student || (student.role || "").toLowerCase() !== "student") {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    const existing = await findCourseByIdProjection(courseId, {
+    const course = await findCourseByIdProjection(courseId, {
       capacity: 1,
       enrolled: 1,
+      studentIds: 1,
+      department: 1,
     });
-    if (!existing) return res.status(404).json({ error: "Not Found" });
+    if (!course) return res.status(404).json({ error: "Not Found" });
 
-    const capacity = existing.capacity ?? 0;
-    const enrolled = existing.enrolled ?? 0;
-    // Instructor assigned to course does not count toward capacity (enrolled = students only)
-    if (enrolled >= capacity) {
+    const studentIds = course.studentIds || [];
+    if (studentIds.some((sid) => String(sid) === studentId)) {
+      return res.status(409).json({ error: "Student already assigned to this course" });
+    }
+
+    const capacity = course.capacity ?? 0;
+    if (studentIds.length >= capacity) {
       return res.status(409).json({ error: "Course is full" });
     }
 
-    const updated = await incrementEnrollment(courseId);
+    const limits = await checkEnrollmentLimits(studentId, course.department);
+    if (!limits.ok) {
+      return res.status(409).json({ error: limits.error });
+    }
+
+    const updated = await addStudentToCourse(courseId, studentId);
     if (!updated) {
-      return res.status(409).json({ error: "Course is full" });
+      return res.status(409).json({ error: "Course is full or student already assigned" });
     }
     return res.status(200).json({
       ok: true,
@@ -280,7 +383,7 @@ async function addStudentLogic(req, res, courseId, studentId) {
       course: toPublic(updated),
     });
   } catch (err) {
-    console.error("Error in POST /api/courses/:id/add-student:", err);
+    console.error("Error in addStudentLogic:", err);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
@@ -288,6 +391,7 @@ async function addStudentLogic(req, res, courseId, studentId) {
 module.exports = {
   list,
   getById,
+  getCourseStudents,
   create,
   update,
   enroll,

@@ -97,124 +97,113 @@ web_back_tatty_sarymsaq/
 └── README.md           # This file
 ```
 
-## API Routes
+## Frontend Routes (Pages)
 
-### Page Routes
+These URLs return HTML pages. All are `GET` unless noted.
 
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/` | GET | Home page with navigation |
-| `/about` | GET | About page |
-| `/contact` | GET | Contact form page |
-| `/login` | GET | Login page |
-| `/signup` | GET | Sign up page |
-| `/courses` | GET | List all courses with filtering and search |
-| `/courses/:id` | GET | Course enrollment detail page |
+| Path | Auth | Description |
+|------|------|-------------|
+| `/` | — | Home page |
+| `/about` | — | About page |
+| `/contact` | — | Contact form page |
+| `/login` | — | Login page |
+| `/signup` | — | Registration page |
+| `/profile` | Required | User profile (any authenticated user) |
+| `/my-courses` | Required | Student’s “My courses” page |
+| `/instructor-courses` | Required, **instructor** | Instructor courses list |
+| `/admin-courses` | Required, **admin** | Admin courses list |
+| `/courses` | — | Courses list (role-specific template) |
+| `/courses/:id` | — | Course detail (admin / instructor / enrollment view) |
+| *(any other)* | — | 404 → `not_found.html` |
 
-### API Routes
+**Auth behavior:** 401 (API) returns JSON `{ "error": "Unauthorized" }`; page routes redirect to `/login`. 403 (API) returns `{ "error": "Not accessible for your role" }` with no redirect.
 
-#### Courses API (`/api/courses`)
+---
 
-| Route | Method | Description | Query Parameters |
-|-------|--------|-------------|------------------|
-| `/api/courses` | GET | Get all courses with filtering, sorting, and field projection | `title`, `code`, `instructor`, `type`, `minCredits`, `maxCredits`, `minCapacity`, `maxCapacity`, `enrolled`, `sort`, `fields` |
-| `/api/courses/:id` | GET | Get a specific course by ID | - |
-| `/api/courses` | POST | Create a new course | - |
-| `/api/courses/:id` | PUT | Update an existing course | - |
-| `/api/courses/:id` | DELETE | Delete a course | - |
+## API Endpoints
 
-**Query Parameters for GET /api/courses:**
-- `title` - Filter by course title (case-insensitive regex)
-- `code` - Filter by course code (case-insensitive regex)
-- `instructor` - Filter by instructor name (case-insensitive regex)
-- `type` - Filter by course type (exact match)
-- `minCredits` - Minimum credits filter
-- `maxCredits` - Maximum credits filter
-- `minCapacity` - Minimum capacity filter
-- `maxCapacity` - Maximum capacity filter
-- `enrolled` - Exact enrolled count filter
-- `sort` - Sort field (prefix with `-` for descending, e.g., `-title`)
-- `fields` - Comma-separated list of fields to return (projection)
+### Authentication (`/api`)
 
-**Example API Requests:**
-```bash
-# Get all courses
-GET /api/courses
+Session cookie is set on login/signup; send cookies for protected endpoints.
 
-# Filter courses by title
-GET /api/courses?title=Programming
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/signup` | — | Register a new user (student) |
+| `POST` | `/api/login` | — | Log in; sets session |
+| `POST` | `/api/logout` | — | Log out; destroys session |
+| `GET` | `/api/me` | — | Current auth status and user info |
+| `GET` | `/api/instructors` | Required, **admin** | List instructors (name, email) |
 
-# Sort by credits descending
-GET /api/courses?sort=-credits
+**POST `/api/signup`** — Body: `firstname`, `surname`, `email`, `password` (min 8), optional `department`. Returns `201` `{ "ok": true }` or `400` with `details` array.
 
-# Get only title and code fields
-GET /api/courses?fields=title,code
+**POST `/api/login`** — Body: `email`, `password`. Returns `200` `{ "ok": true }` or `401` `{ "error": "Invalid credentials" }`.
 
-# Complex query: filter and sort
-GET /api/courses?minCredits=3&type=course&sort=-capacity
-```
+**POST `/api/logout`** — Returns `200` `{ "ok": true }`.
 
-#### Contact API
+**GET `/api/me`** — Returns `200` `{ "authenticated": false }` or `{ "authenticated": true, "user": { "id", "email", "firstname", "surname", "role" } }`.
 
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/contact` | POST | Submit contact form (with validation) |
+**GET `/api/instructors`** — Returns `200` array of `{ "name", "email" }` or `403` for wrong role.
 
-**Request Body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "message": "Your message here"
-}
-```
+---
 
-**Response (Success):**
-```json
-{
-  "success": true,
-  "message": "Thanks, John Doe! Your message has been received.",
-  "id": "mongodb_object_id"
-}
-```
+### Courses API (`/api/courses`)
 
-**Response (Error):**
-```json
-{
-  "error": "Validation failed",
-  "details": ["Name is required", "Email format is invalid"]
-}
-```
+All require authentication and the listed role(s).
+
+| Method | Path | Roles | Description |
+|--------|------|--------|-------------|
+| `GET` | `/api/courses` | student, admin, instructor | List courses (filter/sort/paginate) |
+| `GET` | `/api/courses/:id` | student, admin, instructor | Get one course by ID |
+| `GET` | `/api/courses/:id/students` | admin, instructor | List students assigned to the course |
+| `POST` | `/api/courses` | admin, instructor | Create a course |
+| `PUT` | `/api/courses/:id` | admin | Update a course |
+| `DELETE` | `/api/courses/:id` | admin, instructor | Delete a course |
+| `POST` | `/api/courses/:id/enroll` | student | Self-enroll in course |
+| `POST` | `/api/courses/:id/drop` | student | Drop (leave) course |
+| `POST` | `/api/courses/:id/add-student` | instructor | Assign a student (body: `studentId`) |
+| `POST` | `/api/courses/:id/assign/:studentId` | instructor | Assign a student by ID in URL |
+
+**GET `/api/courses`** — Query (all optional): filter `type`, `title`, `code`, `instructor`, `minCredits`, `maxCredits`, `minCapacity`, `maxCapacity`, `enrolled`; `sort` (e.g. `title`, `-credits`); `fields` (comma-separated); `page`, `limit` (default 6, max 50). Without pagination: `200` array of courses. With pagination: `200` `{ "items": [...], "pagination": { "page", "limit", "total", "totalPages", "hasPrev", "hasNext" } }`. Courses include `studentIds` (string array).
+
+**GET `/api/courses/:id`** — Returns `200` course object or `400`/`404`.
+
+**GET `/api/courses/:id/students`** — Returns `200` array of `{ "id", "firstname", "surname", "email", "department" }` or `403`/`404`.
+
+**POST `/api/courses`** — Body: `title`, `code`, `credits`, `capacity` (required); optional `description`, `type`, `instructor`, `email`, `schedule`, `room`, `prerequisites`, `department`. Returns `201` created course or `400` with `details`.
+
+**PUT `/api/courses/:id`** — Body: any subset of course fields. Returns `200` updated course or `400`/`404`.
+
+**DELETE `/api/courses/:id`** — Returns `200` `{ "ok": true }` or `404`.
+
+**POST `/api/courses/:id/enroll`** — Student only. No body. Rules: not already enrolled; max 5 courses per student; max 2 courses outside student’s department. Returns `200` course or `409` (e.g. "Already enrolled", "Course is full", or limit message).
+
+**POST `/api/courses/:id/drop`** — Student only. Removes current user from course. Returns `200` course or `409` "Not enrolled in this course".
+
+**POST `/api/courses/:id/add-student`** — Instructor only. Body: `studentId` (ObjectId of student). Same enrollment limits as enroll. Returns `200` `{ "ok": true, "message", "course" }` or `404`/`409`.
+
+**POST `/api/courses/:id/assign/:studentId`** — Instructor only. Same as `add-student` with `studentId` in URL.
+
+---
+
+### Contact API
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/contact` | — | Submit contact form |
+
+**Request body (JSON or form):** `name`, `email`, `message` (all required; email validated).
+
+**Responses:** `201` `{ "success": true, "message": "Thanks, ...! Your message has been received.", "id": "..." }` or `400` `{ "error": "Validation failed", "details": ["..."] }`.
+
+---
 
 ## Routes Organization
 
-### `routes/pages.js`
-Handles static page routes:
-- `GET /` → index.html
-- `GET /about` → about.html
-- `GET /contact` → contact.html
-- `GET /login` → login.html
-- `GET /signup` → signup.html
-
-### `routes/courses.js`
-Handles course page rendering:
-- `GET /courses` → Renders courses listing page with dynamic data from MongoDB
-- `GET /courses/:id` → Renders course enrollment detail page
-- Uses templates: `views/courses.html` and `views/enrollment.html`
-- Placeholders: `{{COURSES_LIST}}`, `{{COURSE_INFO}}`, `{{COURSE_TITLE}}`
-
-### `routes/apiCourses.js`
-RESTful API for course management:
-- Full CRUD operations (Create, Read, Update, Delete)
-- Advanced filtering, sorting, and field projection
-- Input validation and error handling
-- Returns JSON responses
-
-### `routes/contact.js`
-Contact form submission handler:
-- `POST /contact` → Validates and saves contact form submissions
-- Server-side validation with detailed error messages
-- Stores submissions in MongoDB `submissions` collection
+- **`routes/pages.js`** — Static and role-based pages: `/`, `/about`, `/contact`, `/login`, `/signup`, `/profile`, `/my-courses`, `/instructor-courses`, `/admin-courses`.
+- **`routes/courses.js`** — `GET /courses`, `GET /courses/:id` (role-specific templates).
+- **`routes/apiCourses.js`** — REST API for courses (CRUD, enroll, drop, assign, list students).
+- **`routes/auth.js`** — `/api/signup`, `/api/login`, `/api/logout`, `/api/me`, `/api/instructors`.
+- **`routes/contact.js`** — `POST /contact`; validates and stores in MongoDB `submissions` collection.
 
 ## Utility Functions (`utils.js`)
 
@@ -337,11 +326,17 @@ PORT=3000
 ## Error Handling
 
 The API returns appropriate HTTP status codes:
-- `200` - Success
-- `201` - Created
-- `400` - Bad Request (validation errors)
-- `404` - Not Found
-- `500` - Internal Server Error
+
+| Code | Meaning |
+|------|---------|
+| `200` | OK |
+| `201` | Created |
+| `400` | Bad Request — validation or invalid input |
+| `401` | Unauthorized — not logged in; API returns JSON, pages redirect to login |
+| `403` | Forbidden — logged in but wrong role; message only, no redirect to login |
+| `404` | Not Found — resource or route not found |
+| `409` | Conflict — business rule (e.g. already enrolled, course full, enrollment limits) |
+| `500` | Internal Server Error |
 
 Error responses include a JSON object with an `error` field and optional `details` array:
 ```json

@@ -44,6 +44,8 @@ function validateCreateBody(body) {
   const room = typeof body.room === "string" ? body.room.trim() : "";
   const prerequisites =
     typeof body.prerequisites === "string" ? body.prerequisites.trim() : "";
+  const department =
+    typeof body.department === "string" ? body.department.trim() : "";
 
   if (email && !isValidEmail(email)) {
     errors.push("email must be a valid email");
@@ -66,6 +68,8 @@ function validateCreateBody(body) {
       schedule,
       room,
       prerequisites,
+      department,
+      studentIds: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     },

@@ -12,6 +12,12 @@ router.get(
   apiCoursesController.list,
 );
 router.get(
+  "/:id/students",
+  requireAuth,
+  requireRole("admin", "instructor"),
+  apiCoursesController.getCourseStudents,
+);
+router.get(
   "/:id",
   requireAuth,
   requireRole("student", "admin", "instructor"),

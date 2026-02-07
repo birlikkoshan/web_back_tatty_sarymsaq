@@ -85,6 +85,12 @@ function validateUpdateBody(body) {
     update.prerequisites = v;
   }
 
+  if (body.department !== undefined) {
+    const v =
+      typeof body.department === "string" ? body.department.trim() : "";
+    update.department = v;
+  }
+
   if (errors.length > 0) return { ok: false, errors };
   if (Object.keys(update).length === 0) {
     return {
