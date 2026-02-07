@@ -131,6 +131,18 @@
     display: none;
 }
 
+body[data-user-role="admin"] .admin-only {
+    display: inline-block;
+}
+
+body[data-user-role="admin"] .instructor-selector.admin-only {
+    display: block;
+}
+
+body[data-user-role="instructor"] .instructor-only {
+    display: flex;
+}
+
 .edit-btn {
     border: none;
     cursor: pointer;
@@ -157,7 +169,6 @@
 }
 
 .add-student-panel {
-    display: flex;
     gap: 10px;
     align-items: center;
 }
