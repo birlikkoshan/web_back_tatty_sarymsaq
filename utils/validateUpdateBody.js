@@ -1,4 +1,3 @@
-const { isValidEmail } = require("./isValidEmail");
 const { isValidObjectId } = require("./isValidObjectId");
 
 /**
@@ -54,20 +53,6 @@ function validateUpdateBody(body) {
     if (Number.isNaN(v) || v < 0)
       errors.push("enrolled must be a non-negative number");
     else update.enrolled = v;
-  }
-
-  if (body.instructor !== undefined) {
-    const v = typeof body.instructor === "string" ? body.instructor.trim() : "";
-    update.instructor = v;
-  }
-
-  if (body.email !== undefined) {
-    const v = typeof body.email === "string" ? body.email.trim() : "";
-    if (v && !isValidEmail(v)) {
-      errors.push("email must be a valid email");
-    } else {
-      update.email = v;
-    }
   }
 
   if (body.schedule !== undefined) {

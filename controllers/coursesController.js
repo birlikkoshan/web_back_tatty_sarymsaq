@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { findCourseById } = require("../models/Course");
+const { findUserById } = require("../models/User");
 const { escapeHtml, calculateStats, generateCourseInfo, isValidObjectId } = require("../utils");
 
 const VIEWS_DIR = path.join(__dirname, "../views");
@@ -58,6 +59,13 @@ function detailPage(req, res) {
         }
 
         const courseData = { ...item, id: String(item._id) };
+        if (item.instructorId) {
+          const instructor = await findUserById(String(item.instructorId));
+          if (instructor) {
+            courseData.instructor = [instructor.firstname, instructor.surname].filter(Boolean).join(" ").trim() || instructor.email || "N/A";
+            courseData.email = instructor.email || "";
+          }
+        }
         const stats = calculateStats(courseData);
         const enrollmentPath = path.join(VIEWS_DIR, "enrollment.html");
 

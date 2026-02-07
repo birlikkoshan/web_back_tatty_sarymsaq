@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const fieldsEl = document.getElementById("fieldsProjection");
       if (fieldsEl) {
         fieldsEl.value =
-          "title,code,credits,instructor,schedule,room,capacity,enrolled";
+          "title,code,credits,instructorId,schedule,room,capacity,enrolled";
       }
       applyInstructorPagePreset();
       currentMode = "initial";
@@ -99,20 +99,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function applyInstructorPagePreset() {
     if (!isInstructorCoursesPage) return;
-    const name = getCurrentUserInstructorName();
-    const instructorInput = document.getElementById("searchInstructor");
-    if (!instructorInput) return;
-    if (name) instructorInput.value = name;
-    instructorInput.setAttribute("readonly", "readonly");
-    instructorInput.title = "Showing only your courses";
+    const userId = String(currentUser?.id || "").trim();
+    const instructorSelect = document.getElementById("searchInstructorId");
+    if (!instructorSelect) return;
+    if (userId) {
+      instructorSelect.value = userId;
+      instructorSelect.disabled = true;
+      instructorSelect.title = "Showing only your courses";
+    }
   }
 
   function applyInstructorScopeQuery(queryParams) {
     if (!isInstructorCoursesPage || !currentUser || currentUser.role !== "instructor") {
       return;
     }
-    const name = getCurrentUserInstructorName();
-    if (name) queryParams.set("instructor", name);
+    const userId = String(currentUser.id || "").trim();
+    if (userId) queryParams.set("instructorId", userId);
   }
 
   function filterInstructorCoursesClient(courses) {
@@ -171,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const queryParams = new URLSearchParams();
       const searchTitle = (document.getElementById("searchTitle")?.value || "").trim();
       const searchCode = (document.getElementById("searchCode")?.value || "").trim();
-      const searchInstructor = (document.getElementById("searchInstructor")?.value || "").trim();
+      const searchInstructorId = (document.getElementById("searchInstructorId")?.value || "").trim();
       const filterType = (document.getElementById("filterType")?.value || "").trim();
       const minCredits = (document.getElementById("minCredits")?.value || "").trim();
       const maxCredits = (document.getElementById("maxCredits")?.value || "").trim();
@@ -184,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (searchTitle) queryParams.append("title", searchTitle);
       if (searchCode) queryParams.append("code", searchCode);
-      if (searchInstructor) queryParams.append("instructor", searchInstructor);
+      if (searchInstructorId) queryParams.append("instructorId", searchInstructorId);
       if (filterType) queryParams.append("type", filterType);
       if (minCredits) queryParams.append("minCredits", minCredits);
       if (maxCredits) queryParams.append("maxCredits", maxCredits);
@@ -298,8 +300,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 : ""
             }
             ${
-              course.instructor
-                ? `<div class="course-meta-item"><strong>${(course.instructor + "").replace(
+              (course.instructor?.name ?? course.instructor)
+                ? `<div class="course-meta-item"><strong>${(String(course.instructor?.name ?? course.instructor)).replace(
                     /</g,
                     "&lt;",
                   )}</strong><small>Instructor</small></div>`
@@ -421,8 +423,7 @@ document.addEventListener("DOMContentLoaded", () => {
         type: document.getElementById("type")?.value,
         credits: document.getElementById("credits")?.value,
         description: document.getElementById("description")?.value,
-        instructor: document.getElementById("instructor")?.value,
-        email: document.getElementById("email")?.value,
+        instructorId: document.getElementById("instructorId")?.value || undefined,
         schedule: document.getElementById("schedule")?.value,
         room: document.getElementById("room")?.value,
         capacity: document.getElementById("capacity")?.value,
@@ -527,7 +528,36 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.dropCourse = dropCourse;
 
-  loadCurrentUser().finally(() => {
+  async function loadInstructorOptions() {
+    try {
+      const res = await fetch("/api/instructors");
+      const data = await res.json().catch(() => []);
+      if (!res.ok || !Array.isArray(data)) return;
+      const filterSelect = document.getElementById("searchInstructorId");
+      const addFormSelect = document.getElementById("instructorId");
+      const configs = [
+        [filterSelect, "All Instructors"],
+        [addFormSelect, "Select instructor..."],
+      ];
+      configs.forEach(([sel, placeholderText]) => {
+        if (!sel) return;
+        sel.innerHTML = "";
+        const opt0 = document.createElement("option");
+        opt0.value = "";
+        opt0.textContent = placeholderText;
+        sel.appendChild(opt0);
+        data.forEach((inst) => {
+          const opt = document.createElement("option");
+          opt.value = inst.id || "";
+          opt.textContent = inst.name || inst.email || "Instructor";
+          sel.appendChild(opt);
+        });
+      });
+    } catch (_) {}
+  }
+
+  loadCurrentUser().finally(async () => {
+    await loadInstructorOptions();
     applyInstructorPagePreset();
     loadInitialCourses();
   });

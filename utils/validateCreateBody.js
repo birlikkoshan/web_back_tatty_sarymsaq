@@ -1,4 +1,3 @@
-const { isValidEmail } = require("./isValidEmail");
 const { isValidObjectId } = require("./isValidObjectId");
 
 /**
@@ -37,9 +36,6 @@ function validateCreateBody(body) {
   }
 
   const type = typeof body.type === "string" ? body.type.trim() : "course";
-  const instructor =
-    typeof body.instructor === "string" ? body.instructor.trim() : "";
-  const email = typeof body.email === "string" ? body.email.trim() : "";
   const schedule =
     typeof body.schedule === "string" ? body.schedule.trim() : "";
   const room = typeof body.room === "string" ? body.room.trim() : "";
@@ -52,9 +48,6 @@ function validateCreateBody(body) {
 
   if (instructorId && !isValidObjectId(instructorId)) {
     errors.push("instructorId must be a valid MongoDB ObjectId");
-  }
-  if (email && !isValidEmail(email)) {
-    errors.push("email must be a valid email");
   }
 
   if (errors.length > 0) return { ok: false, errors };
@@ -69,8 +62,6 @@ function validateCreateBody(body) {
       capacity,
       description,
       enrolled,
-      instructor,
-      email,
       schedule,
       room,
       prerequisites,

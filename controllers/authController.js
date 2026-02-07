@@ -141,6 +141,7 @@ async function listInstructors(req, res) {
       email: 1,
     });
     const list = docs.map((u) => ({
+      id: String(u._id),
       name: [u.firstname, u.surname].filter(Boolean).join(" ").trim() || u.email,
       email: u.email || "",
     }));

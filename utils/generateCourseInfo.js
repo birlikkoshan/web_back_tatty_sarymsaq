@@ -8,7 +8,7 @@ const { escapeHtml } = require("./escapeHtml");
  */
 function generateCourseInfo(item, stats) {
   return `
-    <div class="course-detail-header" data-course-id="${escapeHtml(item.id || "")}">
+    <div class="course-detail-header" data-course-id="${escapeHtml(item.id || "")}" data-instructor-id="${escapeHtml(String(item.instructorId || ""))}">
       <div class="editable-row">
         <h1 id="field-title">${escapeHtml(item.title || "N/A")}</h1>
         <button class="btn btn-secondary admin-only edit-btn" type="button" onclick="editCourseField('title', 'text')">Edit</button>

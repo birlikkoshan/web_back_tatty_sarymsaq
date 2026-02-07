@@ -46,8 +46,10 @@
               <input type="text" id="searchCode" placeholder="e.g., CS101...">
             </div>
             <div class="filter-group">
-              <label for="searchInstructor">Instructor</label>
-              <input type="text" id="searchInstructor" placeholder="Instructor name...">
+              <label for="searchInstructorId">Instructor</label>
+              <select id="searchInstructorId">
+                <option value="">All Instructors</option>
+              </select>
             </div>
             <div class="filter-group">
               <label for="filterType">Course Type</label>
@@ -109,7 +111,7 @@
           <div class="filter-group">
             <label for="fieldsProjection">Select Fields (comma-separated)</label>
             <input type="text" id="fieldsProjection" placeholder="e.g., title,code,credits,instructor"
-                   value="title,code,credits,instructor,schedule,room,capacity,enrolled">
+                   value="title,code,credits,instructorId,schedule,room,capacity,enrolled">
           </div>
 
           <div class="button-group">
@@ -167,12 +169,10 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label for="instructor">Instructor</label>
-            <input type="text" id="instructor" name="instructor" placeholder="e.g., John Smith">
-          </div>
-          <div class="form-group">
-            <label for="email">Instructor Email</label>
-            <input type="email" id="email" name="email" placeholder="e.g., john@university.edu">
+            <label for="instructorId">Instructor</label>
+            <select id="instructorId" name="instructorId">
+              <option value="">Select instructor...</option>
+            </select>
           </div>
         </div>
         <div class="form-row">

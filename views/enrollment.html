@@ -46,6 +46,11 @@
         return header?.dataset?.courseId || "";
       }
 
+      function getInstructorId() {
+        const header = document.querySelector(".course-detail-header");
+        return header?.dataset?.instructorId || "";
+      }
+
       function escapeHtml(text) {
         if (text == null) return "";
         const div = document.createElement("div");
@@ -130,11 +135,17 @@
           if (!res.ok || !Array.isArray(data)) return;
 
           instructorOptions = data;
+          const currentInstructorId = getInstructorId();
           data.forEach((inst) => {
             const opt = document.createElement("option");
-            opt.value = inst.name || "";
+            opt.value = inst.id || "";
             opt.textContent = inst.name || inst.email || "Instructor";
             opt.dataset.email = inst.email || "";
+            opt.dataset.name = inst.name || "";
+            if (inst.id && currentInstructorId && String(inst.id) === String(currentInstructorId)) {
+              opt.selected = true;
+              emailPreview.value = inst.email || "";
+            }
             select.appendChild(opt);
           });
 
@@ -151,7 +162,7 @@
         if (!listEl || !loadingEl) return;
 
         try {
-          const res = await fetch(`/api/course/${courseId}/students`, {
+          const res = await fetch(`/api/courses/${courseId}/students`, {
             credentials: "include",
           });
           const data = await res.json().catch(() => []);
@@ -236,15 +247,16 @@
         const emailPreview = document.getElementById("instructorEmailPreview");
         if (!select || !emailPreview) return;
 
-        const name = select.value.trim();
+        const instructorId = select.value.trim();
+        const selected = select.options[select.selectedIndex];
+        const name = selected?.dataset?.name || select.options[select.selectedIndex]?.textContent || "";
         const email = emailPreview.value.trim();
-        if (!name) {
+        if (!instructorId) {
           alert("Please select an instructor");
           return;
         }
 
-        pendingChanges.instructor = name;
-        pendingChanges.email = email;
+        pendingChanges.instructorId = instructorId;
         updateFieldUI("instructor", name);
         updateFieldUI("email", email);
         const emailLink = document.getElementById("field-email-link");

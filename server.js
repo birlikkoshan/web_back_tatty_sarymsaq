@@ -7,7 +7,6 @@ const config = require("./config");
 const pagesRoutes = require("./routes/pages");
 const coursesPageRoutes = require("./routes/courses");
 const courseApiRoutes = require("./routes/apiCourses");
-const courseApiSingularRoutes = require("./routes/apiCourse");
 const contactRoutes = require("./routes/contact");
 const authRoutes = require("./routes/auth");
 
@@ -59,7 +58,6 @@ app.use(coursesPageRoutes);
 
 // API routes
 app.use("/api/courses", courseApiRoutes);
-app.use("/api/course", courseApiSingularRoutes);
 app.use("/api", authRoutes);
 
 app.use(contactRoutes); // POST /contact

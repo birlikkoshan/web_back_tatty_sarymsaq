@@ -20,40 +20,20 @@ const {
   removeStudentFromCourse,
   findCoursesContainingStudent,
 } = require("../models/Course");
+const { ObjectId } = require("mongodb");
 const { findUserById, findUsersByIds } = require("../models/User");
 
 const MAX_COURSES_PER_STUDENT = 5;
 const MAX_NON_MAJOR_COURSES = 2;
-
-function escapeRegExp(text) {
-  return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 
 function buildInstructorCourseFilter(req) {
   const role = (req.session?.role || "").toLowerCase();
   if (role !== "instructor") return {};
 
   const userId = req.session?.userId ? String(req.session.userId) : "";
-  const email = (req.session?.email || "").trim();
-  const fullName = [req.session?.firstname, req.session?.surname]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
+  if (!userId || !isValidObjectId(userId)) return { _id: null };
 
-  const or = [];
-  if (userId) or.push({ instructorId: userId });
-  if (email) {
-    or.push({
-      email: { $regex: `^${escapeRegExp(email)}$`, $options: "i" },
-    });
-  }
-  if (fullName) {
-    or.push({
-      instructor: { $regex: `^${escapeRegExp(fullName)}$`, $options: "i" },
-    });
-  }
-  if (or.length === 0) return { _id: null };
-  return { $or: or };
+  return { instructorId: new ObjectId(userId) };
 }
 
 function isInstructorOwner(req, course) {
@@ -61,22 +41,8 @@ function isInstructorOwner(req, course) {
   if (role !== "instructor") return true;
 
   const userId = req.session?.userId ? String(req.session.userId) : "";
-  const email = (req.session?.email || "").trim().toLowerCase();
-  const fullName = [req.session?.firstname, req.session?.surname]
-    .filter(Boolean)
-    .join(" ")
-    .trim()
-    .toLowerCase();
-
-  const courseInstructorId = String(course?.instructorId || "");
-  const courseEmail = String(course?.email || "").trim().toLowerCase();
-  const courseInstructor = String(course?.instructor || "").trim().toLowerCase();
-
-  return (
-    (userId && courseInstructorId === userId) ||
-    (email && courseEmail === email) ||
-    (fullName && courseInstructor === fullName)
-  );
+  const courseInstructorId = course?.instructorId ? String(course.instructorId) : "";
+  return userId && courseInstructorId === userId;
 }
 
 function withInstructorScope(req, baseFilter) {
@@ -84,6 +50,40 @@ function withInstructorScope(req, baseFilter) {
   if (!scope || Object.keys(scope).length === 0) return baseFilter;
   if (!baseFilter || Object.keys(baseFilter).length === 0) return scope;
   return { $and: [baseFilter, scope] };
+}
+
+async function enrichWithInstructor(pub) {
+  if (!pub || !pub.instructorId) return pub;
+  const user = await findUserById(pub.instructorId);
+  if (!user) return pub;
+  pub.instructor = {
+    id: String(user._id),
+    firstname: user.firstname,
+    surname: user.surname,
+    email: user.email || "",
+    name: [user.firstname, user.surname].filter(Boolean).join(" ").trim() || user.email || "",
+  };
+  return pub;
+}
+
+async function enrichCoursesWithInstructors(items) {
+  if (!Array.isArray(items) || items.length === 0) return items;
+  const ids = [...new Set(items.map((c) => c.instructorId).filter(Boolean))];
+  const users = ids.length ? await findUsersByIds(ids, { firstname: 1, surname: 1, email: 1 }) : [];
+  const byId = new Map(users.map((u) => [String(u._id), u]));
+  return items.map((c) => {
+    if (!c.instructorId) return c;
+    const u = byId.get(String(c.instructorId));
+    if (!u) return c;
+    c.instructor = {
+      id: String(u._id),
+      firstname: u.firstname,
+      surname: u.surname,
+      email: u.email || "",
+      name: [u.firstname, u.surname].filter(Boolean).join(" ").trim() || u.email || "",
+    };
+    return c;
+  });
 }
 
 async function checkEnrollmentLimits(studentId, newCourseDepartment) {
@@ -126,7 +126,9 @@ async function list(req, res) {
 
     if (!hasPagination) {
       const docs = await findCourses(filter, sort, projection);
-      return res.status(200).json(docs.map(toPublic));
+      let items = docs.map(toPublic);
+      items = await enrichCoursesWithInstructors(items);
+      return res.status(200).json(items);
     }
 
     const page =
@@ -141,9 +143,11 @@ async function list(req, res) {
       countCourses(filter),
     ]);
     const totalPages = Math.max(1, Math.ceil(total / safeLimit));
+    let items = docs.map(toPublic);
+    items = await enrichCoursesWithInstructors(items);
 
     return res.status(200).json({
-      items: docs.map(toPublic),
+      items,
       pagination: {
         page,
         limit: safeLimit,
@@ -171,7 +175,9 @@ async function getById(req, res) {
     if (!isInstructorOwner(req, doc)) {
       return res.status(403).json({ error: "Forbidden" });
     }
-    return res.status(200).json(toPublic(doc));
+    let pub = toPublic(doc);
+    pub = await enrichWithInstructor(pub);
+    return res.status(200).json(pub);
   } catch (err) {
     console.error("Error in GET /api/courses/:id:", err);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -237,17 +243,14 @@ async function create(req, res) {
     const doc = { ...parsed.doc };
     if ((req.session?.role || "").toLowerCase() === "instructor") {
       doc.instructorId = req.session?.userId || "";
-      if (!doc.email && req.session?.email) doc.email = req.session.email;
-      if (!doc.instructor) {
-        doc.instructor = [req.session?.firstname, req.session?.surname]
-          .filter(Boolean)
-          .join(" ")
-          .trim();
-      }
     }
+    delete doc.instructor;
+    delete doc.email;
 
     const created = await insertCourse(doc);
-    return res.status(201).json(toPublic(created));
+    let pub = toPublic(created);
+    pub = await enrichWithInstructor(pub);
+    return res.status(201).json(pub);
   } catch (err) {
     console.error("Error in POST /api/courses:", err);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -299,9 +302,15 @@ async function update(req, res) {
       }
     }
 
-    const updated = await updateCourse(id, parsed.update);
+    const update = { ...parsed.update };
+    if (update.instructorId && typeof update.instructorId === "string") {
+      update.instructorId = new ObjectId(update.instructorId);
+    }
+    const updated = await updateCourse(id, update);
     if (!updated) return res.status(404).json({ error: "Not Found" });
-    return res.status(200).json(toPublic(updated));
+    let pub = toPublic(updated);
+    pub = await enrichWithInstructor(pub);
+    return res.status(200).json(pub);
   } catch (err) {
     console.error("Error in PUT /api/courses/:id:", err);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -423,6 +432,16 @@ async function addStudentLogic(req, res, courseId, studentId) {
 
   const updated = await addStudentToCourse(courseId, studentId);
   if (!updated) {
+    const recheck = await findCourseByIdProjection(courseId, { studentIds: 1 });
+    const ids = recheck?.studentIds || [];
+    if (ids.some((sid) => String(sid) === studentId)) {
+      const fullCourse = await findCourseById(courseId);
+      return res.status(200).json({
+        ok: true,
+        message: "Student added to course",
+        course: toPublic(fullCourse),
+      });
+    }
     return res.status(409).json({ error: "Course is full or student already assigned" });
   }
   return res.status(200).json({
@@ -473,6 +492,16 @@ async function removeStudentByInstructor(req, res) {
 
     const updated = await removeStudentFromCourse(id, studentId);
     if (!updated) {
+      const recheck = await findCourseByIdProjection(id, { studentIds: 1 });
+      const ids = recheck?.studentIds || [];
+      if (!ids.some((sid) => String(sid) === studentId)) {
+        const fullCourse = await findCourseById(id);
+        return res.status(200).json({
+          ok: true,
+          message: "Student removed from course",
+          course: toPublic(fullCourse),
+        });
+      }
       return res.status(409).json({ error: "Student not enrolled in this course" });
     }
     return res.status(200).json({
