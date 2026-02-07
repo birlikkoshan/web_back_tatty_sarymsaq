@@ -94,7 +94,7 @@ async function login(req, res) {
     req.session.firstname = user.firstname;
     req.session.surname = user.surname || "";
     req.session.role = user.role;
-
+    localStorage.setItem("role", user.role);
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("Error in POST /api/login:", err);

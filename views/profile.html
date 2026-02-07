@@ -204,7 +204,7 @@
         </div>
         <div class="stat">
           <p>Role</p>
-          <strong id="profile-role">Student</strong>
+          <strong id="profile-role"></strong>
         </div>
       </div>
     </div>
@@ -225,6 +225,7 @@
       const avatarEl = document.getElementById('profile-avatar');
       const emailPillEl = document.getElementById('profile-email-pill');
       const strengthEl = document.getElementById('profile-strength');
+      const roleEl = document.getElementById('profile-role');
       try {
         const res = await fetch('/api/me', { credentials: 'include' });
         const data = await res.json();
@@ -250,7 +251,7 @@
         avatarEl.textContent = initials || 'SM';
         emailPillEl.textContent = `Email: ${email}`;
         strengthEl.textContent = userId !== 'N/A' ? 'Good' : 'Getting started';
-
+        roleEl.textContent = user.role || 'Student';
         box.innerHTML = `
           <div class="profile-item">
             <span>First name</span>
@@ -271,6 +272,10 @@
           <div class="profile-item">
             <span>Account Status</span>
             <strong>Verified</strong>
+          </div>
+          <div class="profile-item">
+            <span>Role</span>
+            <strong>${user.role || 'Student'}</strong>
           </div>
         `;
       } catch (e) {
