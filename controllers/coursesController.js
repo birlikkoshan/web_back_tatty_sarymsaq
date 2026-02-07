@@ -6,7 +6,14 @@ const { escapeHtml, calculateStats, generateCourseInfo, isValidObjectId } = requ
 const VIEWS_DIR = path.join(__dirname, "../views");
 
 function listPage(req, res) {
-  const templatePath = path.join(VIEWS_DIR, "courses.html");
+  const role = req.session?.role;
+  const templateFile =
+    role === "admin"
+      ? "admin-courses.html"
+      : role === "instructor"
+        ? "instructor-courses.html"
+        : "student-courses.html";
+  const templatePath = path.join(VIEWS_DIR, templateFile);
   fs.readFile(templatePath, "utf8", (err, template) => {
     if (err) {
       console.error("Error reading courses template:", err);
