@@ -37,6 +37,198 @@
     </footer>
 
     <script>
+      let currentUserRole = "student";
+      let instructorOptions = [];
+      let pendingChanges = {};
+
+      function getCourseId() {
+        const header = document.querySelector(".course-detail-header");
+        return header?.dataset?.courseId || "";
+      }
+
+      function escapeHtml(text) {
+        if (text == null) return "";
+        const div = document.createElement("div");
+        div.textContent = String(text);
+        return div.innerHTML;
+      }
+
+      async function updateCourse(courseId, payload) {
+        const response = await fetch(`/api/courses/${courseId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+          alert("Please login");
+          window.location.href = "/login";
+          return null;
+        }
+        if (response.status === 403) {
+          alert("Only admins can edit course details");
+          return null;
+        }
+        if (!response.ok) {
+          const msg = data?.error || "Failed to update course";
+          const details = Array.isArray(data?.details) ? `: ${data.details.join("; ")}` : "";
+          throw new Error(msg + details);
+        }
+        return data;
+      }
+
+      function updateFieldUI(field, value) {
+        const fieldEl = document.getElementById(`field-${field}`);
+        if (!fieldEl) return;
+        fieldEl.textContent = value == null || value === "" ? "N/A" : String(value);
+      }
+
+      function refreshSaveButtonState() {
+        const primaryBtn = document.getElementById("coursePrimaryAction");
+        if (!primaryBtn || currentUserRole !== "admin") return;
+        const hasPending = Object.keys(pendingChanges).length > 0;
+        primaryBtn.textContent = hasPending ? "Save Changes *" : "Save Changes";
+      }
+
+      async function editCourseField(field, inputType) {
+        if (currentUserRole !== "admin") return;
+        const fieldEl = document.getElementById(`field-${field}`);
+        if (!fieldEl) return;
+
+        const currentValue = fieldEl.textContent.trim() === "N/A" ? "" : fieldEl.textContent.trim();
+        const nextValue =
+          inputType === "textarea"
+            ? prompt("Enter new value:", currentValue)
+            : prompt("Enter new value:", currentValue);
+        if (nextValue === null) return;
+
+        if (inputType === "number") {
+          const parsed = Number(nextValue);
+          if (Number.isNaN(parsed)) {
+            alert("Please enter a valid number");
+            return;
+          }
+          pendingChanges[field] = parsed;
+          updateFieldUI(field, parsed);
+        } else {
+          pendingChanges[field] = nextValue;
+          updateFieldUI(field, nextValue);
+        }
+        refreshSaveButtonState();
+      }
+
+      async function loadInstructorOptions() {
+        const select = document.getElementById("instructorSelect");
+        const emailPreview = document.getElementById("instructorEmailPreview");
+        if (!select || !emailPreview) return;
+
+        try {
+          const res = await fetch("/api/instructors");
+          const data = await res.json().catch(() => []);
+          if (!res.ok || !Array.isArray(data)) return;
+
+          instructorOptions = data;
+          data.forEach((inst) => {
+            const opt = document.createElement("option");
+            opt.value = inst.name || "";
+            opt.textContent = inst.name || inst.email || "Instructor";
+            opt.dataset.email = inst.email || "";
+            select.appendChild(opt);
+          });
+
+          select.addEventListener("change", () => {
+            const selected = select.options[select.selectedIndex];
+            emailPreview.value = selected?.dataset?.email || "";
+          });
+        } catch (_) {}
+      }
+
+      async function saveInstructorSelection() {
+        if (currentUserRole !== "admin") return;
+        const select = document.getElementById("instructorSelect");
+        const emailPreview = document.getElementById("instructorEmailPreview");
+        if (!select || !emailPreview) return;
+
+        const name = select.value.trim();
+        const email = emailPreview.value.trim();
+        if (!name) {
+          alert("Please select an instructor");
+          return;
+        }
+
+        pendingChanges.instructor = name;
+        pendingChanges.email = email;
+        updateFieldUI("instructor", name);
+        updateFieldUI("email", email);
+        const emailLink = document.getElementById("field-email-link");
+        if (emailLink) emailLink.href = `mailto:${escapeHtml(email)}`;
+        refreshSaveButtonState();
+      }
+
+      window.editCourseField = editCourseField;
+      window.saveInstructorSelection = saveInstructorSelection;
+      window.addStudentById = async function addStudentById(courseId) {
+        const input = document.getElementById("studentIdInput");
+        const studentId = input?.value?.trim();
+        if (!studentId) {
+          alert("Enter studentId");
+          return;
+        }
+        try {
+          const response = await fetch(`/api/courses/${courseId}/add-student`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ studentId }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (response.status === 401) {
+            alert("Please login");
+            window.location.href = "/login";
+            return;
+          }
+          if (response.status === 403) {
+            alert("Only instructors can add students");
+            return;
+          }
+          if (response.status === 409) {
+            alert("Course is full");
+            return;
+          }
+          if (!response.ok) {
+            alert(data?.error || "Failed to add student");
+            return;
+          }
+          alert("Student added to course");
+          if (input) input.value = "";
+          location.reload();
+        } catch (error) {
+          alert("Error adding student: " + error.message);
+        }
+      };
+      window.saveChanges = async function saveChanges() {
+        if (currentUserRole !== "admin") return;
+        const courseId = getCourseId();
+        if (!courseId) return;
+        if (Object.keys(pendingChanges).length === 0) {
+          alert("No changes to save");
+          return;
+        }
+        try {
+          const updated = await updateCourse(courseId, pendingChanges);
+          if (!updated) return;
+          pendingChanges = {};
+          refreshSaveButtonState();
+          alert("Changes saved");
+          location.reload();
+        } catch (error) {
+          alert("Save failed: " + error.message);
+        }
+      };
+
       function enrollCourse(courseId) {
         // Send POST request to enroll
         fetch(`/api/courses/${courseId}/enroll`, {
@@ -75,6 +267,37 @@
             alert("Error enrolling in course: " + error.message);
           });
       }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const res = await fetch("/api/me", { credentials: "include" });
+          const data = await res.json().catch(() => ({}));
+          currentUserRole = data?.user?.role || "student";
+
+          if (currentUserRole === "admin") {
+            document.querySelectorAll(".admin-only").forEach((el) => {
+              el.style.display = "";
+            });
+          }
+          const primaryBtn = document.getElementById("coursePrimaryAction");
+          if (primaryBtn && currentUserRole === "admin") {
+            primaryBtn.textContent = "Save Changes";
+            primaryBtn.setAttribute("onclick", "saveChanges()");
+            primaryBtn.style.display = "";
+            refreshSaveButtonState();
+          } else if (primaryBtn && currentUserRole !== "student") {
+            primaryBtn.style.display = "none";
+          }
+          if (currentUserRole === "instructor") {
+            document.querySelectorAll(".instructor-only").forEach((el) => {
+              el.style.display = "";
+            });
+          }
+          if (currentUserRole === "admin") {
+            loadInstructorOptions();
+          }
+        } catch (_) {}
+      });
     </script>
     <script src="/auth.js" defer></script>
   </body>

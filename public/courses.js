@@ -2,6 +2,20 @@
 document.addEventListener('DOMContentLoaded', () => {
   const coursesContainer = document.getElementById('courses');
   if (!coursesContainer) return; // Not on courses page
+  const showDeleteButton = coursesContainer.dataset.showDelete !== 'false';
+  const showDropButton = coursesContainer.dataset.showDrop === 'true';
+  const viewActionLabel = coursesContainer.dataset.viewLabel || 'View & Enroll';
+  const pageSize = Number(coursesContainer.dataset.pageSize) > 0 ? Number(coursesContainer.dataset.pageSize) : 6;
+  let currentPage = 1;
+  let totalPages = 1;
+  let currentMode = 'initial';
+  let paginationEl = document.getElementById('coursesPagination');
+  if (!paginationEl) {
+    paginationEl = document.createElement('div');
+    paginationEl.id = 'coursesPagination';
+    paginationEl.className = 'courses-pagination';
+    coursesContainer.insertAdjacentElement('afterend', paginationEl);
+  }
 
   // ========== ACCORDION ==========
   const filterAccordion = document.getElementById('filterAccordion');
@@ -23,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener('click', async (e) => {
       e.preventDefault();
+      currentMode = 'filtered';
+      currentPage = 1;
       await loadFilteredCourses();
     });
   }
@@ -31,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (filterForm) filterForm.reset();
       const fieldsEl = document.getElementById('fieldsProjection');
       if (fieldsEl) fieldsEl.value = 'title,code,credits,instructor,schedule,room,capacity,enrolled';
+      currentMode = 'initial';
+      currentPage = 1;
       loadInitialCourses();
     });
   }
@@ -48,6 +66,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const div = document.createElement('div');
     div.textContent = String(text);
     return div.innerHTML;
+  }
+
+  function renderPagination() {
+    if (!paginationEl) return;
+    if (totalPages <= 1) {
+      paginationEl.innerHTML = '';
+      return;
+    }
+    paginationEl.innerHTML = `
+      <button type="button" class="btn btn-secondary" id="prevPageBtn" ${currentPage <= 1 ? 'disabled' : ''}>Prev</button>
+      <span class="pagination-label">Page ${currentPage} of ${totalPages}</span>
+      <button type="button" class="btn btn-secondary" id="nextPageBtn" ${currentPage >= totalPages ? 'disabled' : ''}>Next</button>
+    `;
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    if (prevBtn) {
+      prevBtn.addEventListener('click', async () => {
+        if (currentPage <= 1) return;
+        currentPage -= 1;
+        if (currentMode === 'filtered') await loadFilteredCourses();
+        else await loadInitialCourses();
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', async () => {
+        if (currentPage >= totalPages) return;
+        currentPage += 1;
+        if (currentMode === 'filtered') await loadFilteredCourses();
+        else await loadInitialCourses();
+      });
+    }
   }
 
   async function loadFilteredCourses() {
@@ -80,6 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
         queryParams.append('sort', sortValue);
       }
       if (fieldsProjection) queryParams.append('fields', fieldsProjection);
+      queryParams.append('page', String(currentPage));
+      queryParams.append('limit', String(pageSize));
 
       const queryString = queryParams.toString();
       const url = `/api/courses${queryString ? '?' + queryString : ''}`;
@@ -94,21 +145,25 @@ document.addEventListener('DOMContentLoaded', () => {
         coursesContainer.innerHTML = `<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">${escapeHtml(msg)}${details ? ' — ' + escapeHtml(details) : ''}</p>`;
         return;
       }
-      const courses = Array.isArray(data) ? data : [];
+      const courses = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
+      totalPages = data?.pagination?.totalPages || 1;
       if (courses.length === 0) {
         coursesContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No courses found</p>';
+        renderPagination();
         return;
       }
       renderCourses(courses);
+      renderPagination();
     } catch (error) {
       console.error('Error:', error);
       coursesContainer.innerHTML = '<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">Error loading courses</p>';
+      if (paginationEl) paginationEl.innerHTML = '';
     }
   }
 
   async function loadInitialCourses() {
     try {
-      const response = await fetch('/api/courses');
+      const response = await fetch(`/api/courses?page=${encodeURIComponent(currentPage)}&limit=${encodeURIComponent(pageSize)}`);
       const data = await response.json();
       if (!response.ok) {
         const msg = data?.error || 'Error loading courses';
@@ -116,15 +171,19 @@ document.addEventListener('DOMContentLoaded', () => {
         coursesContainer.innerHTML = `<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">${escapeHtml(msg)}${details ? ' — ' + escapeHtml(details) : ''}</p>`;
         return;
       }
-      const courses = Array.isArray(data) ? data : [];
+      const courses = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
+      totalPages = data?.pagination?.totalPages || 1;
       if (courses.length === 0) {
         coursesContainer.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No courses found</p>';
+        renderPagination();
         return;
       }
       renderCourses(courses);
+      renderPagination();
     } catch (error) {
       console.error('Error:', error);
       coursesContainer.innerHTML = '<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">Error loading courses</p>';
+      if (paginationEl) paginationEl.innerHTML = '';
     }
   }
 
@@ -153,9 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           ` : ''}
         </div>
-        <div class="course-card-footer">
-          <a class="btn btn-primary" href="/courses/${(course.id + '').replace(/"/g, '&quot;')}">View & Enroll</a>
-          <button type="button" class="btn btn-delete" data-course-id="${(course.id + '').replace(/"/g, '&quot;')}">Delete</button>
+        <div class="course-card-footer course-actions">
+          <a class="btn btn-primary" href="/courses/${(course.id + '').replace(/"/g, '&quot;')}">${escapeHtml(viewActionLabel)}</a>
+          ${showDropButton ? `<button type="button" class="btn btn-drop" data-course-id="${(course.id + '').replace(/"/g, '&quot;')}">Drop</button>` : ''}
+          ${showDeleteButton ? `<button type="button" class="btn btn-delete" data-course-id="${(course.id + '').replace(/"/g, '&quot;')}">Delete</button>` : ''}
         </div>
       </div>
     `;
@@ -166,6 +226,12 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', function () {
         const courseId = this.getAttribute('data-course-id');
         if (courseId) deleteCourse(courseId);
+      });
+    });
+    coursesContainer.querySelectorAll('.btn-drop').forEach((btn) => {
+      btn.addEventListener('click', function () {
+        const courseId = this.getAttribute('data-course-id');
+        if (courseId) dropCourse(courseId);
       });
     });
   }
@@ -273,6 +339,30 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
   window.deleteCourse = deleteCourse;
+
+  function dropCourse(courseId) {
+    if (!confirm('Drop this course?')) return;
+    fetch(`/api/courses/${courseId}/drop`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 401 || response.status === 403) {
+          alert('Please login to perform this action');
+          window.location.href = '/login';
+          return;
+        }
+        if (response.ok) {
+          alert('You have dropped this course');
+          loadInitialCourses();
+        } else {
+          alert(data?.error || 'Error dropping course');
+        }
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error dropping course: ' + error.message);
+      });
+  }
+  window.dropCourse = dropCourse;
 
   loadInitialCourses();
 });
