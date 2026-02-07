@@ -104,6 +104,21 @@ function generateCourseInfo(item, stats) {
         </div>
         <p>${stats.spotsRemaining} spots remaining</p>
       </div>
+
+      <div class="course-section instructor-only students-section">
+        <h2>Students</h2>
+        <p id="studentsLoadingText">Loading students...</p>
+        <h3 class="students-table-title">Students Table</h3>
+        <div class="students-table">
+          <div class="students-row students-head">
+            <div>Name</div>
+            <div>Email</div>
+            <div>Department</div>
+            <div>Action</div>
+          </div>
+          <div id="studentsList" class="students-body"></div>
+        </div>
+      </div>
     </div>
 
     <div class="course-detail-footer">

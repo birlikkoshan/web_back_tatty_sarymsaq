@@ -140,7 +140,7 @@ body[data-user-role="admin"] .instructor-selector.admin-only {
 }
 
 body[data-user-role="instructor"] .instructor-only {
-    display: flex;
+    display: block;
 }
 
 .edit-btn {
@@ -169,6 +169,7 @@ body[data-user-role="instructor"] .instructor-only {
 }
 
 .add-student-panel {
+    display: flex;
     gap: 10px;
     align-items: center;
 }
@@ -179,6 +180,61 @@ body[data-user-role="instructor"] .instructor-only {
     border: 1px solid #d1d5db;
     border-radius: 6px;
     font-size: 14px;
+}
+
+.students-section {
+    margin-top: 10px;
+}
+
+.students-table-title {
+    margin: 6px 0 8px;
+    font-size: 1rem;
+    color: #374151;
+    font-weight: 700;
+}
+
+.students-table {
+    margin-top: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.students-row {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr auto;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    align-items: center;
+    background: #fff;
+}
+
+.students-row:last-child {
+    border-bottom: none;
+}
+
+.students-head {
+    background: #f3f4f6;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.students-body .students-row:nth-child(even) {
+    background: #f9fafb;
+}
+
+.students-name {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.student-remove-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
 }
 
 .progress-bar {

@@ -339,6 +339,36 @@ async function addStudent(req, res) {
   }
 }
 
+async function removeStudentByInstructor(req, res) {
+  try {
+    const { id, studentId } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: "Invalid course id" });
+    }
+    if (!isValidObjectId(studentId)) {
+      return res.status(400).json({ error: "Invalid studentId" });
+    }
+
+    const student = await findUserById(studentId);
+    if (!student || (student.role || "").toLowerCase() !== "student") {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    const updated = await removeStudentFromCourse(id, studentId);
+    if (!updated) {
+      return res.status(409).json({ error: "Student is not assigned to this course" });
+    }
+    return res.status(200).json({
+      ok: true,
+      message: "Student removed from course",
+      course: toPublic(updated),
+    });
+  } catch (err) {
+    console.error("Error in POST /api/courses/:id/remove-student/:studentId:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function addStudentLogic(req, res, courseId, studentId) {
   try {
     if (!isValidObjectId(courseId)) {
@@ -396,6 +426,7 @@ module.exports = {
   update,
   enroll,
   addStudent,
+  removeStudentByInstructor,
   assignStudent,
   drop,
   remove,
