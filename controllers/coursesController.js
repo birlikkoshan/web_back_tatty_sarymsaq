@@ -6,26 +6,25 @@ const { escapeHtml, calculateStats, generateCourseInfo, isValidObjectId } = requ
 const VIEWS_DIR = path.join(__dirname, "../views");
 
 function listPage(req, res) {
-  const role = localStorage.getItem("role");
-  if (role === "admin") {
-    const templatePath = path.join(VIEWS_DIR, "admin-courses.html");
-    fs.readFile(templatePath, "utf8", (err, template) => {
-      if (err) {
-        console.error("Error reading admin-courses template:", err);
-        return res.status(500).send("Error loading admin-courses page");
-      }
-      res.send(template);
-    });
-  } else {
-    const templatePath = path.join(VIEWS_DIR, "courses.html");
-    fs.readFile(templatePath, "utf8", (err, template) => {
-      if (err) {
-        console.error("Error reading admin-courses template:", err);
-        return res.status(500).send("Error loading admin-courses page");
-      }
-      res.send(template);
-    });
-  }
+  const role = req.session?.role;
+  const templateFile =
+    role === "admin"
+      ? "admin-courses.html"
+      : role === "instructor"
+        ? "instructor-courses.html"
+        : "student-courses.html";
+  const templatePath = path.join(VIEWS_DIR, templateFile);
+  fs.readFile(templatePath, "utf8", (err, template) => {
+    if (err) {
+      console.error("Error reading courses template:", err);
+      return res.status(500).send("Error loading courses page");
+    }
+    const html = template.replace(
+      /{{COURSES_LIST}}/g,
+      '<p style="text-align: center; color: #666; grid-column: 1/-1;">Loading courses...</p>'
+    );
+    res.send(html);
+  });
 }
 
 function detailPage(req, res) {
