@@ -5,10 +5,13 @@
  */
 function toPublic(doc) {
   if (!doc) return doc;
-  const { _id, studentIds, ...rest } = doc;
+  const { _id, studentIds, instructorId, ...rest } = doc;
   const out = { id: String(_id), ...rest };
   if (Array.isArray(studentIds)) {
     out.studentIds = studentIds.map((i) => (i != null ? String(i) : i));
+  }
+  if (instructorId != null) {
+    out.instructorId = String(instructorId);
   }
   return out;
 }

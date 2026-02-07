@@ -27,6 +27,19 @@ const { findUserById, findUsersByIds } = require("../models/User");
 const MAX_COURSES_PER_STUDENT = 5;
 const MAX_NON_MAJOR_COURSES = 2;
 
+function ensureInstructorOwnsCourse(req, res, course) {
+  const role = (req.session?.role || "").toLowerCase();
+  if (role === "admin") return true;
+  if (role !== "instructor") return true;
+  const courseInstructorId = course?.instructorId ? String(course.instructorId) : "";
+  const userId = req.session?.userId ? String(req.session.userId) : "";
+  if (!courseInstructorId || courseInstructorId !== userId) {
+    res.status(403).json({ error: "Not accessible for your role" });
+    return false;
+  }
+  return true;
+}
+
 async function checkEnrollmentLimits(studentId, newCourseDepartment) {
   const student = await findUserById(studentId);
   if (!student) return { ok: false, error: "Student not found" };
@@ -119,8 +132,9 @@ async function getCourseStudents(req, res) {
       return res.status(400).json({ error: "Invalid id" });
     }
 
-    const course = await findCourseByIdProjection(id, { studentIds: 1 });
+    const course = await findCourseByIdProjection(id, { studentIds: 1, instructorId: 1 });
     if (!course) return res.status(404).json({ error: "Not Found" });
+    if (!ensureInstructorOwnsCourse(req, res, course)) return;
 
     const ids = course.studentIds || [];
     if (ids.length === 0) {
@@ -162,7 +176,15 @@ async function create(req, res) {
         .json({ error: "Bad Request", details: parsed.errors });
     }
 
-    const created = await insertCourse(parsed.doc);
+    const role = (req.session?.role || "").toLowerCase();
+    const doc = { ...parsed.doc };
+    if (role === "instructor" && req.session?.userId) {
+      doc.instructorId = req.session.userId;
+    } else if (parsed.doc.instructorId) {
+      doc.instructorId = parsed.doc.instructorId;
+    }
+
+    const created = await insertCourse(doc);
     res.status(201).json(toPublic(created));
   } catch (err) {
     console.error("Error in POST /api/courses:", err);
@@ -260,6 +282,12 @@ async function enroll(req, res) {
 
     const updated = await addStudentToCourse(id, studentId);
     if (!updated) {
+      const recheck = await findCourseByIdProjection(id, { studentIds: 1 });
+      const ids = recheck?.studentIds || [];
+      if (ids.some((sid) => String(sid) === studentId)) {
+        const fullCourse = await findCourseById(id);
+        return res.status(200).json(toPublic(fullCourse));
+      }
       return res.status(409).json({ error: "Course is full or already enrolled" });
     }
     return res.status(200).json(toPublic(updated));
@@ -275,6 +303,9 @@ async function remove(req, res) {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid id" });
     }
+
+    const course = await findCourseByIdProjection(id, { instructorId: 1 });
+    if (course && !ensureInstructorOwnsCourse(req, res, course)) return;
 
     const deleted = await deleteCourse(id);
     if (!deleted) return res.status(404).json({ error: "Not Found" });
@@ -306,6 +337,12 @@ async function drop(req, res) {
 
     const updated = await removeStudentFromCourse(id, studentId);
     if (!updated) {
+      const recheck = await findCourseByIdProjection(id, { studentIds: 1 });
+      const ids = recheck?.studentIds || [];
+      if (!ids.some((sid) => String(sid) === studentId)) {
+        const fullCourse = await findCourseById(id);
+        return res.status(200).json(toPublic(fullCourse));
+      }
       return res.status(409).json({ error: "Not enrolled in this course" });
     }
     return res.status(200).json(toPublic(updated));
@@ -355,8 +392,10 @@ async function addStudentLogic(req, res, courseId, studentId) {
       enrolled: 1,
       studentIds: 1,
       department: 1,
+      instructorId: 1,
     });
     if (!course) return res.status(404).json({ error: "Not Found" });
+    if (!ensureInstructorOwnsCourse(req, res, course)) return;
 
     const studentIds = course.studentIds || [];
     if (studentIds.some((sid) => String(sid) === studentId)) {
@@ -388,6 +427,32 @@ async function addStudentLogic(req, res, courseId, studentId) {
   }
 }
 
+async function removeStudentByInstructor(req, res) {
+  try {
+    const { id, studentId } = req.params;
+    if (!isValidObjectId(id) || !isValidObjectId(studentId)) {
+      return res.status(400).json({ error: "Invalid id or studentId" });
+    }
+
+    const course = await findCourseByIdProjection(id, { instructorId: 1, studentIds: 1 });
+    if (!course) return res.status(404).json({ error: "Not Found" });
+    if (!ensureInstructorOwnsCourse(req, res, course)) return;
+
+    const updated = await removeStudentFromCourse(id, studentId);
+    if (!updated) {
+      return res.status(409).json({ error: "Student not enrolled in this course" });
+    }
+    return res.status(200).json({
+      ok: true,
+      message: "Student removed from course",
+      course: toPublic(updated),
+    });
+  } catch (err) {
+    console.error("Error in POST /api/courses/:id/remove-student/:studentId:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 module.exports = {
   list,
   getById,
@@ -397,6 +462,7 @@ module.exports = {
   enroll,
   addStudent,
   assignStudent,
+  removeStudentByInstructor,
   drop,
   remove,
 };

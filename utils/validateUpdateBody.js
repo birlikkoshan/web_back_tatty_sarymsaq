@@ -1,4 +1,5 @@
 const { isValidEmail } = require("./isValidEmail");
+const { isValidObjectId } = require("./isValidObjectId");
 
 /**
  * Validate course update body
@@ -89,6 +90,16 @@ function validateUpdateBody(body) {
     const v =
       typeof body.department === "string" ? body.department.trim() : "";
     update.department = v;
+  }
+
+  if (body.instructorId !== undefined) {
+    const v =
+      typeof body.instructorId === "string" ? body.instructorId.trim() : "";
+    if (v && !isValidObjectId(v)) {
+      errors.push("instructorId must be a valid MongoDB ObjectId");
+    } else {
+      update.instructorId = v || null;
+    }
   }
 
   if (errors.length > 0) return { ok: false, errors };

@@ -1,4 +1,5 @@
 const { isValidEmail } = require("./isValidEmail");
+const { isValidObjectId } = require("./isValidObjectId");
 
 /**
  * Validate course creation body
@@ -46,7 +47,12 @@ function validateCreateBody(body) {
     typeof body.prerequisites === "string" ? body.prerequisites.trim() : "";
   const department =
     typeof body.department === "string" ? body.department.trim() : "";
+  const instructorId =
+    typeof body.instructorId === "string" ? body.instructorId.trim() : "";
 
+  if (instructorId && !isValidObjectId(instructorId)) {
+    errors.push("instructorId must be a valid MongoDB ObjectId");
+  }
   if (email && !isValidEmail(email)) {
     errors.push("email must be a valid email");
   }
@@ -69,6 +75,7 @@ function validateCreateBody(body) {
       room,
       prerequisites,
       department,
+      instructorId: instructorId || undefined,
       studentIds: [],
       createdAt: new Date(),
       updatedAt: new Date(),

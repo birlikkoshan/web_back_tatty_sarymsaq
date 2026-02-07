@@ -42,6 +42,12 @@ router.post(
   apiCoursesController.addStudent,
 );
 router.post(
+  "/:id/remove-student/:studentId",
+  requireAuth,
+  requireRole("instructor"),
+  apiCoursesController.removeStudentByInstructor,
+);
+router.post(
   "/:id/drop",
   requireAuth,
   requireRole("student"),
