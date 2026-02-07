@@ -128,7 +128,7 @@
 }
 
 .instructor-only {
-    display: none;
+    display: none !important;
 }
 
 body[data-user-role="admin"] .admin-only {
@@ -140,7 +140,11 @@ body[data-user-role="admin"] .instructor-selector.admin-only {
 }
 
 body[data-user-role="instructor"] .instructor-only {
-    display: block;
+    display: block !important;
+}
+
+body[data-user-role="instructor"] .add-student-panel.instructor-only {
+    display: flex !important;
 }
 
 .edit-btn {

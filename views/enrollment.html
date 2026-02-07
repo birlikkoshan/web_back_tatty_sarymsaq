@@ -395,13 +395,17 @@
             } else if (primaryBtn && currentUserRole !== "student") {
               primaryBtn.style.display = "none";
             }
-          if (currentUserRole === "instructor") {
-            document.querySelectorAll(".instructor-only").forEach((el) => {
-              el.style.display = "";
-            });
-            const courseId = getCourseId();
-            if (courseId) loadCourseStudents(courseId);
-          }
+            if (currentUserRole === "instructor") {
+              document.querySelectorAll(".instructor-only").forEach((el) => {
+                el.style.display = "";
+              });
+              const courseId = getCourseId();
+              if (courseId) loadCourseStudents(courseId);
+            } else {
+              document.querySelectorAll(".instructor-only").forEach((el) => {
+                el.style.display = "none";
+              });
+            }
           };
 
           applyRoleUI();
