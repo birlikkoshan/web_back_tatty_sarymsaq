@@ -20,7 +20,7 @@
         <nav class="nav">
           <a class="choosed-link" href="/">Home</a>
           <a href="/about">About</a>
-          <a href="/courses">Courses</a>
+          <a id="courses-nav-link" href="/courses">Courses</a>
           <a href="/contact">Contact</a>
           <a id="auth-link" href="/login">Login</a>
           <a id="logout-link" href="#" style="display: none">Logout</a>
@@ -273,6 +273,16 @@
           const res = await fetch("/api/me", { credentials: "include" });
           const data = await res.json().catch(() => ({}));
           currentUserRole = data?.user?.role || "student";
+          const coursesNavLink = document.getElementById("courses-nav-link");
+          if (coursesNavLink) {
+            if (currentUserRole === "admin") {
+              coursesNavLink.href = "/admin-courses";
+            } else if (currentUserRole === "instructor") {
+              coursesNavLink.href = "/instructor-courses";
+            } else {
+              coursesNavLink.href = "/courses";
+            }
+          }
 
           if (currentUserRole === "admin") {
             document.querySelectorAll(".admin-only").forEach((el) => {
