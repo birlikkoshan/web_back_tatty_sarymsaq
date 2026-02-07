@@ -4,7 +4,7 @@ function requireRole(...allowedRoles) {
 
     if (allowedRoles.includes(role)) return next();
 
-    return res.status(403).json({ error: "Forbidden" });
+    return res.status(403).json({ error: "Not accessible for your role" });
   };
 }
 

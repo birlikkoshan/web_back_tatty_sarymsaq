@@ -297,9 +297,13 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify(formData),
         });
         const data = await response.json();
-        if (response.status === 401 || response.status === 403) {
+        if (response.status === 401) {
           showAlert('Please login to perform this action', 'error');
           setTimeout(() => { window.location.href = '/login'; }, 800);
+          return;
+        }
+        if (response.status === 403) {
+          showAlert(data?.error || 'Not accessible for your role', 'error');
           return;
         }
         if (response.ok) {
@@ -321,9 +325,13 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(`/api/courses/${courseId}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
-        if (response.status === 401 || response.status === 403) {
+        if (response.status === 401) {
           alert('Please login to perform this action');
           window.location.href = '/login';
+          return;
+        }
+        if (response.status === 403) {
+          alert(data?.error || 'Not accessible for your role');
           return;
         }
         if (response.ok) {
@@ -345,9 +353,13 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(`/api/courses/${courseId}/drop`, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
-        if (response.status === 401 || response.status === 403) {
+        if (response.status === 401) {
           alert('Please login to perform this action');
           window.location.href = '/login';
+          return;
+        }
+        if (response.status === 403) {
+          alert(data?.error || 'Not accessible for your role');
           return;
         }
         if (response.ok) {

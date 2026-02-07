@@ -68,7 +68,7 @@
           return null;
         }
         if (response.status === 403) {
-          alert("Only admins can edit course details");
+          alert(data?.error || "Not accessible for your role");
           return null;
         }
         if (!response.ok) {
@@ -191,7 +191,7 @@
             return;
           }
           if (response.status === 403) {
-            alert("Only instructors can add students");
+            alert(data?.error || "Not accessible for your role");
             return;
           }
           if (response.status === 409) {
@@ -244,7 +244,7 @@
               return null;
             }
             if (response.status === 403) {
-              alert("Only students can enroll");
+              alert("Not accessible for your role");
               return null;
             }
             if (response.status === 409) {

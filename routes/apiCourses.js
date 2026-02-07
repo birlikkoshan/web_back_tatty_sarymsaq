@@ -24,6 +24,12 @@ router.post(
   apiCoursesController.enroll,
 );
 router.post(
+  "/:id/assign/:studentId",
+  requireAuth,
+  requireRole("instructor"),
+  apiCoursesController.assignStudent,
+);
+router.post(
   "/:id/add-student",
   requireAuth,
   requireRole("instructor"),

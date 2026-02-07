@@ -222,16 +222,34 @@ async function drop(req, res) {
   }
 }
 
+async function assignStudent(req, res) {
+  try {
+    const { id, studentId } = req.params;
+    return addStudentLogic(req, res, id, studentId);
+  } catch (err) {
+    console.error("Error in POST /api/courses/:id/assign/:studentId:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function addStudent(req, res) {
   try {
     const { id } = req.params;
     const { studentId } = req.body || {};
-
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ error: "Invalid course id" });
-    }
     if (!isValidObjectId(studentId)) {
       return res.status(400).json({ error: "Invalid studentId" });
+    }
+    return addStudentLogic(req, res, id, studentId);
+  } catch (err) {
+    console.error("Error in POST /api/courses/:id/add-student:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function addStudentLogic(req, res, courseId, studentId) {
+  try {
+    if (!isValidObjectId(courseId)) {
+      return res.status(400).json({ error: "Invalid course id" });
     }
 
     const student = await findUserById(studentId);
@@ -239,7 +257,7 @@ async function addStudent(req, res) {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    const existing = await findCourseByIdProjection(id, {
+    const existing = await findCourseByIdProjection(courseId, {
       capacity: 1,
       enrolled: 1,
     });
@@ -247,11 +265,12 @@ async function addStudent(req, res) {
 
     const capacity = existing.capacity ?? 0;
     const enrolled = existing.enrolled ?? 0;
+    // Instructor assigned to course does not count toward capacity (enrolled = students only)
     if (enrolled >= capacity) {
       return res.status(409).json({ error: "Course is full" });
     }
 
-    const updated = await incrementEnrollment(id);
+    const updated = await incrementEnrollment(courseId);
     if (!updated) {
       return res.status(409).json({ error: "Course is full" });
     }
@@ -273,6 +292,7 @@ module.exports = {
   update,
   enroll,
   addStudent,
+  assignStudent,
   drop,
   remove,
 };
