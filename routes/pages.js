@@ -18,5 +18,11 @@ router.get(
   requireRole("instructor"),
   pagesController.instructorCoursesPage,
 );
+router.get(
+  "/admin-courses",
+  requireAuth,
+  requireRole("admin"),
+  pagesController.adminCoursesPage,
+);
 
 module.exports = router;
