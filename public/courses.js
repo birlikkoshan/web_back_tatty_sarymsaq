@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!coursesContainer) return; // Not on courses page
 
   const isInstructorCoursesPage = window.location.pathname === "/instructor-courses";
+  const isMyCoursesPage = window.location.pathname === "/my-courses";
   const showDeleteButton = coursesContainer.dataset.showDelete !== "false";
   const showDropButton = coursesContainer.dataset.showDrop === "true";
   const viewActionLabel = coursesContainer.dataset.viewLabel || "View & Enroll";
@@ -117,6 +118,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (userId) queryParams.set("instructorId", userId);
   }
 
+  function applyMyCoursesScopeQuery(queryParams) {
+    if (!isMyCoursesPage || !currentUser || currentUser.role !== "student") return;
+    queryParams.set("enrolledOnly", "true");
+  }
+
   function filterInstructorCoursesClient(courses) {
     if (!isInstructorCoursesPage || !currentUser || currentUser.role !== "instructor") {
       return courses;
@@ -134,6 +140,17 @@ document.addEventListener("DOMContentLoaded", () => {
         (email && courseEmail === email) ||
         (name && courseInstructorName === name)
       );
+    });
+  }
+
+  function filterMyCoursesClient(courses) {
+    if (!isMyCoursesPage || !currentUser || currentUser.role !== "student") {
+      return courses;
+    }
+    const studentId = String(currentUser.id || "");
+    return courses.filter((course) => {
+      const ids = Array.isArray(course?.studentIds) ? course.studentIds.map((id) => String(id)) : [];
+      return studentId && ids.includes(studentId);
     });
   }
 
@@ -199,6 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (fieldsProjection) queryParams.append("fields", fieldsProjection);
       applyInstructorScopeQuery(queryParams);
+      applyMyCoursesScopeQuery(queryParams);
       queryParams.append("page", String(currentPage));
       queryParams.append("limit", String(pageSize));
 
@@ -219,7 +237,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const rawCourses = Array.isArray(data) ? data : Array.isArray(data.items) ? data.items : [];
-      const courses = filterInstructorCoursesClient(rawCourses);
+      const scopedCourses = filterInstructorCoursesClient(rawCourses);
+      const courses = filterMyCoursesClient(scopedCourses);
       totalPages = data?.pagination?.totalPages || 1;
       if (courses.length === 0) {
         coursesContainer.innerHTML =
@@ -243,6 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
       queryParams.set("page", String(currentPage));
       queryParams.set("limit", String(pageSize));
       applyInstructorScopeQuery(queryParams);
+      applyMyCoursesScopeQuery(queryParams);
 
       const response = await fetch(`/api/courses?${queryParams.toString()}`);
       const data = await response.json().catch(() => ({}));
@@ -257,7 +277,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const rawCourses = Array.isArray(data) ? data : Array.isArray(data.items) ? data.items : [];
-      const courses = filterInstructorCoursesClient(rawCourses);
+      const scopedCourses = filterInstructorCoursesClient(rawCourses);
+      const courses = filterMyCoursesClient(scopedCourses);
       totalPages = data?.pagination?.totalPages || 1;
       if (courses.length === 0) {
         coursesContainer.innerHTML =

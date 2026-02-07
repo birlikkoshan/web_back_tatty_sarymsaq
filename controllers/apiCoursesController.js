@@ -117,7 +117,21 @@ async function checkEnrollmentLimits(studentId, newCourseDepartment) {
 
 async function list(req, res) {
   try {
-    const filter = withInstructorScope(req, buildFilter(req.query));
+    let filter = withInstructorScope(req, buildFilter(req.query));
+    const role = (req.session?.role || "").toLowerCase();
+    const enrolledOnly = String(req.query.enrolledOnly || "").toLowerCase() === "true";
+    if (role === "student" && enrolledOnly) {
+      const studentId = req.session?.userId ? String(req.session.userId) : "";
+      if (!studentId || !isValidObjectId(studentId)) {
+        filter = { _id: null };
+      } else {
+        const enrolledFilter = { studentIds: new ObjectId(studentId) };
+        filter =
+          filter && Object.keys(filter).length > 0
+            ? { $and: [filter, enrolledFilter] }
+            : enrolledFilter;
+      }
+    }
     const sort = parseSort(req.query.sort);
     const projection = parseFields(req.query.fields);
     const pageRaw = Number(req.query.page);
