@@ -75,7 +75,7 @@ function generateCourseInfo(item, stats) {
     </div>
 
     <div class="course-detail-footer">
-      <button class="btn btn-primary" onclick="enrollCourse('${item.id}', ${item.capacity || 0}, ${item.enrolled || 0})">Enroll Now</button>
+      <button class="btn btn-primary" onclick="enrollCourse('${item.id}')">Enroll Now</button>
       <a href="/courses" class="btn btn-secondary">Back to Courses</a>
     </div>
   `;

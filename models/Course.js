@@ -35,7 +35,7 @@ async function updateCourse(id, update) {
   const col = await getCourseCollection();
   const result = await col.updateOne(
     { _id: new ObjectId(id) },
-    { $set: update }
+    { $set: update },
   );
   if (result.matchedCount === 0) return null;
   return col.findOne({ _id: new ObjectId(id) });
@@ -47,6 +47,19 @@ async function deleteCourse(id) {
   return result.deletedCount > 0;
 }
 
+async function incrementEnrollment(id) {
+  const col = await getCourseCollection();
+  const result = await col.findOneAndUpdate(
+    {
+      _id: new ObjectId(id),
+      $expr: { $lt: ["$enrolled", "$capacity"] },
+    },
+    { $inc: { enrolled: 1 }, $set: { updatedAt: new Date() } },
+    { returnDocument: "after" },
+  );
+  return result.value || null;
+}
+
 module.exports = {
   findCourses,
   findCourseById,
@@ -54,4 +67,5 @@ module.exports = {
   insertCourse,
   updateCourse,
   deleteCourse,
+  incrementEnrollment,
 };

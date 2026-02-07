@@ -14,6 +14,7 @@ const {
   insertCourse,
   updateCourse,
   deleteCourse,
+  incrementEnrollment,
 } = require("../models/Course");
 
 async function list(req, res) {
@@ -117,6 +118,36 @@ async function update(req, res) {
   }
 }
 
+async function enroll(req, res) {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: "Invalid id" });
+    }
+
+    const existing = await findCourseByIdProjection(id, {
+      capacity: 1,
+      enrolled: 1,
+    });
+    if (!existing) return res.status(404).json({ error: "Not Found" });
+
+    const capacity = existing.capacity ?? 0;
+    const enrolled = existing.enrolled ?? 0;
+    if (enrolled >= capacity) {
+      return res.status(409).json({ error: "Course is full" });
+    }
+
+    const updated = await incrementEnrollment(id);
+    if (!updated) {
+      return res.status(409).json({ error: "Course is full" });
+    }
+    return res.status(200).json(toPublic(updated));
+  } catch (err) {
+    console.error("Error in POST /api/courses/:id/enroll:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function remove(req, res) {
   try {
     const { id } = req.params;
@@ -138,5 +169,6 @@ module.exports = {
   getById,
   create,
   update,
+  enroll,
   remove,
 };
