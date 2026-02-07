@@ -25,8 +25,6 @@ async function signup(req, res) {
       typeof req.body.surname === "string" ? req.body.surname.trim() : "";
     const email = normalizeEmail(req.body.email);
     const password = req.body.password;
-    const department =
-      typeof req.body.department === "string" ? req.body.department.trim() : "";
     const role = "student";
 
     const errors = [];
@@ -56,7 +54,6 @@ async function signup(req, res) {
       email,
       passwordHash,
       role,
-      department: department || undefined,
       createdAt: now,
       updatedAt: now,
     });

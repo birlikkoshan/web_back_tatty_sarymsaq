@@ -206,7 +206,7 @@ body[data-user-role="instructor"] .add-student-panel.instructor-only {
 
 .students-row {
     display: grid;
-    grid-template-columns: 2fr 2fr 1fr auto;
+    grid-template-columns: 2fr 2fr auto;
     gap: 12px;
     padding: 10px 12px;
     border-bottom: 1px solid #e5e7eb;

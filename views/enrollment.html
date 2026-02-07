@@ -184,12 +184,10 @@
             .map((s) => {
               const fullName = [s.firstname, s.surname].filter(Boolean).join(" ").trim() || "Unnamed student";
               const email = s.email || "No email";
-              const department = s.department || "N/A";
               return `
                 <div class="students-row">
                   <div class="students-name">${escapeHtml(fullName)}</div>
                   <div>${escapeHtml(email)}</div>
-                  <div>${escapeHtml(department)}</div>
                   <div>
                     <button
                       type="button"

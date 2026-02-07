@@ -134,7 +134,7 @@ Session cookie is set on login/signup; send cookies for protected endpoints.
 | `GET` | `/api/me` | — | Current auth status and user info |
 | `GET` | `/api/instructors` | Required, **admin** | List instructors (name, email) |
 
-**POST `/api/signup`** — Body: `firstname`, `surname`, `email`, `password` (min 8), optional `department`. Returns `201` `{ "ok": true }` or `400` with `details` array.
+**POST `/api/signup`** — Body: `firstname`, `surname`, `email`, `password` (min 8). Returns `201` `{ "ok": true }` or `400` with `details` array.
 
 **POST `/api/login`** — Body: `email`, `password`. Returns `200` `{ "ok": true }` or `401` `{ "error": "Invalid credentials" }`.
 
@@ -167,15 +167,15 @@ All require authentication and the listed role(s).
 
 **GET `/api/courses/:id`** — Returns `200` course object or `400`/`404`.
 
-**GET `/api/courses/:id/students`** — Returns `200` array of `{ "id", "firstname", "surname", "email", "department" }` or `403`/`404`.
+**GET `/api/courses/:id/students`** — Returns `200` array of `{ "id", "firstname", "surname", "email" }` or `403`/`404`.
 
-**POST `/api/courses`** — Body: `title`, `code`, `credits`, `capacity` (required); optional `description`, `type`, `instructor`, `email`, `schedule`, `room`, `prerequisites`, `department`. Returns `201` created course or `400` with `details`.
+**POST `/api/courses`** — Body: `title`, `code`, `credits`, `capacity` (required); optional `description`, `type`, `instructorId`, `schedule`, `room`, `prerequisites`. Returns `201` created course or `400` with `details`.
 
 **PUT `/api/courses/:id`** — Body: any subset of course fields. Returns `200` updated course or `400`/`404`.
 
 **DELETE `/api/courses/:id`** — Returns `200` `{ "ok": true }` or `404`.
 
-**POST `/api/courses/:id/enroll`** — Student only. No body. Rules: not already enrolled; max 5 courses per student; max 2 courses outside student’s department. Returns `200` course or `409` (e.g. "Already enrolled", "Course is full", or limit message).
+**POST `/api/courses/:id/enroll`** — Student only. No body. Rules: not already enrolled; max 5 courses per student. Returns `200` course or `409` (e.g. "Already enrolled", "Course is full", or limit message).
 
 **POST `/api/courses/:id/drop`** — Student only. Removes current user from course. Returns `200` course or `409` "Not enrolled in this course".
 

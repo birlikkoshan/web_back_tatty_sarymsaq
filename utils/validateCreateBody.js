@@ -41,8 +41,6 @@ function validateCreateBody(body) {
   const room = typeof body.room === "string" ? body.room.trim() : "";
   const prerequisites =
     typeof body.prerequisites === "string" ? body.prerequisites.trim() : "";
-  const department =
-    typeof body.department === "string" ? body.department.trim() : "";
   const instructorId =
     typeof body.instructorId === "string" ? body.instructorId.trim() : "";
 
@@ -65,7 +63,6 @@ function validateCreateBody(body) {
       schedule,
       room,
       prerequisites,
-      department,
       instructorId: instructorId || undefined,
       studentIds: [],
       createdAt: new Date(),

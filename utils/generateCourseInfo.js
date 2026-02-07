@@ -113,7 +113,6 @@ function generateCourseInfo(item, stats) {
           <div class="students-row students-head">
             <div>Name</div>
             <div>Email</div>
-            <div>Department</div>
             <div>Action</div>
           </div>
           <div id="studentsList" class="students-body"></div>

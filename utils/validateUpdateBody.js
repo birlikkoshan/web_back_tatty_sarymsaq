@@ -71,12 +71,6 @@ function validateUpdateBody(body) {
     update.prerequisites = v;
   }
 
-  if (body.department !== undefined) {
-    const v =
-      typeof body.department === "string" ? body.department.trim() : "";
-    update.department = v;
-  }
-
   if (body.instructorId !== undefined) {
     const v =
       typeof body.instructorId === "string" ? body.instructorId.trim() : "";

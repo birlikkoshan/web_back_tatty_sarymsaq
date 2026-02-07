@@ -24,7 +24,6 @@ const { ObjectId } = require("mongodb");
 const { findUserById, findUsersByIds } = require("../models/User");
 
 const MAX_COURSES_PER_STUDENT = 5;
-const MAX_NON_MAJOR_COURSES = 2;
 
 function buildInstructorCourseFilter(req) {
   const role = (req.session?.role || "").toLowerCase();
@@ -86,30 +85,15 @@ async function enrichCoursesWithInstructors(items) {
   });
 }
 
-async function checkEnrollmentLimits(studentId, newCourseDepartment) {
+async function checkEnrollmentLimits(studentId) {
   const student = await findUserById(studentId);
   if (!student) return { ok: false, error: "Student not found" };
-
-  const studentDept = (student.department || "").toLowerCase();
-  const newDept = (newCourseDepartment || "").toLowerCase();
 
   const enrolledCourses = await findCoursesContainingStudent(studentId);
   if (enrolledCourses.length >= MAX_COURSES_PER_STUDENT) {
     return {
       ok: false,
       error: `Cannot enroll in more than ${MAX_COURSES_PER_STUDENT} courses`,
-    };
-  }
-
-  const nonMajorCount = enrolledCourses.filter((c) => {
-    const courseDept = (c.department || "").toLowerCase();
-    return courseDept !== studentDept;
-  }).length;
-  const thisIsNonMajor = newDept !== studentDept;
-  if (thisIsNonMajor && nonMajorCount >= MAX_NON_MAJOR_COURSES) {
-    return {
-      ok: false,
-      error: `Cannot enroll in more than ${MAX_NON_MAJOR_COURSES} courses outside your major (department)`,
     };
   }
   return { ok: true };
@@ -209,7 +193,6 @@ async function getCourseStudents(req, res) {
       firstname: 1,
       surname: 1,
       email: 1,
-      department: 1,
     });
     const byId = new Map(users.map((u) => [String(u._id), u]));
     const list = ids.map((oid) => {
@@ -220,9 +203,8 @@ async function getCourseStudents(req, res) {
             firstname: u.firstname,
             surname: u.surname,
             email: u.email,
-            department: u.department || "",
           }
-        : { id: String(oid), firstname: "", surname: "", email: "", department: "" };
+        : { id: String(oid), firstname: "", surname: "", email: "" };
     });
     return res.status(200).json(list);
   } catch (err) {
@@ -332,7 +314,6 @@ async function enroll(req, res) {
       capacity: 1,
       enrolled: 1,
       studentIds: 1,
-      department: 1,
     });
     if (!course) return res.status(404).json({ error: "Not Found" });
 
@@ -346,7 +327,7 @@ async function enroll(req, res) {
       return res.status(409).json({ error: "Course is full" });
     }
 
-    const limits = await checkEnrollmentLimits(studentId, course.department);
+    const limits = await checkEnrollmentLimits(studentId);
     if (!limits.ok) return res.status(409).json({ error: limits.error });
 
     const updated = await addStudentToCourse(id, studentId);
@@ -407,7 +388,6 @@ async function addStudentLogic(req, res, courseId, studentId) {
     capacity: 1,
     enrolled: 1,
     studentIds: 1,
-    department: 1,
     instructorId: 1,
     instructor: 1,
     email: 1,
@@ -427,7 +407,7 @@ async function addStudentLogic(req, res, courseId, studentId) {
     return res.status(409).json({ error: "Course is full" });
   }
 
-  const limits = await checkEnrollmentLimits(studentId, course.department);
+  const limits = await checkEnrollmentLimits(studentId);
   if (!limits.ok) return res.status(409).json({ error: limits.error });
 
   const updated = await addStudentToCourse(courseId, studentId);
