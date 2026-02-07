@@ -145,6 +145,91 @@
         } catch (_) {}
       }
 
+      async function loadCourseStudents(courseId) {
+        const listEl = document.getElementById("studentsList");
+        const loadingEl = document.getElementById("studentsLoadingText");
+        if (!listEl || !loadingEl) return;
+
+        try {
+          const res = await fetch(`/api/course/${courseId}/students`, {
+            credentials: "include",
+          });
+          const data = await res.json().catch(() => []);
+
+          if (!res.ok) {
+            loadingEl.textContent = "Failed to load students";
+            return;
+          }
+
+          const students = Array.isArray(data) ? data : [];
+          if (students.length === 0) {
+            loadingEl.textContent = "No students assigned yet";
+            listEl.innerHTML = "";
+            return;
+          }
+
+          loadingEl.style.display = "none";
+          listEl.innerHTML = students
+            .map((s) => {
+              const fullName = [s.firstname, s.surname].filter(Boolean).join(" ").trim() || "Unnamed student";
+              const email = s.email || "No email";
+              const department = s.department || "N/A";
+              return `
+                <div class="students-row">
+                  <div class="students-name">${escapeHtml(fullName)}</div>
+                  <div>${escapeHtml(email)}</div>
+                  <div>${escapeHtml(department)}</div>
+                  <div>
+                    <button
+                      type="button"
+                      class="student-remove-btn"
+                      title="Remove student"
+                      onclick="removeStudentByInstructor('${courseId}', '${escapeHtml(s.id || "")}')"
+                    >❌</button>
+                  </div>
+                </div>
+              `;
+            })
+            .join("");
+        } catch (_) {
+          loadingEl.textContent = "Failed to load students";
+        }
+      }
+
+      window.removeStudentByInstructor = async function removeStudentByInstructor(courseId, studentId) {
+        if (currentUserRole !== "instructor") return;
+        if (!studentId) return;
+        if (!confirm("Remove this student from the course?")) return;
+
+        try {
+          const response = await fetch(`/api/courses/${courseId}/remove-student/${studentId}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+          const data = await response.json().catch(() => ({}));
+          if (response.status === 401) {
+            alert("Please login");
+            window.location.href = "/login";
+            return;
+          }
+          if (response.status === 403) {
+            alert("Only instructors can remove students");
+            return;
+          }
+          if (!response.ok) {
+            alert(data?.error || "Failed to remove student");
+            return;
+          }
+          alert("Student removed from course");
+          location.reload();
+        } catch (error) {
+          alert("Error removing student: " + error.message);
+        }
+      };
+
       async function saveInstructorSelection() {
         if (currentUserRole !== "admin") return;
         const select = document.getElementById("instructorSelect");
@@ -298,11 +383,13 @@
             } else if (primaryBtn && currentUserRole !== "student") {
               primaryBtn.style.display = "none";
             }
-            if (currentUserRole === "instructor") {
-              document.querySelectorAll(".instructor-only").forEach((el) => {
-                el.style.display = "";
-              });
-            }
+          if (currentUserRole === "instructor") {
+            document.querySelectorAll(".instructor-only").forEach((el) => {
+              el.style.display = "";
+            });
+            const courseId = getCourseId();
+            if (courseId) loadCourseStudents(courseId);
+          }
           };
 
           applyRoleUI();
