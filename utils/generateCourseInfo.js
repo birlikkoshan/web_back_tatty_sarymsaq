@@ -7,8 +7,11 @@ const { escapeHtml } = require("./escapeHtml");
  * @returns {string} HTML string
  */
 function generateCourseInfo(item, stats) {
+  const studentIds = Array.isArray(item.studentIds)
+    ? item.studentIds.map((id) => String(id)).join(",")
+    : "";
   return `
-    <div class="course-detail-header" data-course-id="${escapeHtml(item.id || "")}" data-instructor-id="${escapeHtml(String(item.instructorId || ""))}">
+    <div class="course-detail-header" data-course-id="${escapeHtml(item.id || "")}" data-instructor-id="${escapeHtml(String(item.instructorId || ""))}" data-student-ids="${escapeHtml(studentIds)}">
       <div class="editable-row">
         <h1 id="field-title">${escapeHtml(item.title || "N/A")}</h1>
         <button class="btn btn-secondary admin-only edit-btn" type="button" onclick="editCourseField('title', 'text')">Edit</button>

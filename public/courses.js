@@ -299,6 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderCourses(courses) {
     coursesContainer.innerHTML = courses
       .map((course) => {
+        const detailSuffix = isMyCoursesPage ? "?from=my-courses" : "";
         const pct = course.capacity
           ? Math.round(((course.enrolled || 0) / course.capacity) * 100)
           : 0;
@@ -361,7 +362,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <a class="btn btn-primary" href="/courses/${(course.id + "").replace(
             /"/g,
             "&quot;",
-          )}">${escapeHtml(viewActionLabel)}</a>
+          )}${detailSuffix}">${escapeHtml(viewActionLabel)}</a>
           ${
             showDropButton
               ? `<button type="button" class="btn btn-drop" data-course-id="${(course.id + "").replace(

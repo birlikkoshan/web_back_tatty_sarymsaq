@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/enrollment.css" />
   </head>
-  <body data-user-role="{{USER_ROLE}}">
+  <body data-user-role="{{USER_ROLE}}" data-user-id="{{USER_ID}}">
     <header class="header">
       <div class="container header-inner">
         <div class="logo">StudentMS</div>
@@ -38,12 +38,22 @@
 
     <script>
       let currentUserRole = document.body?.dataset?.userRole || "student";
+      let currentUserId = document.body?.dataset?.userId || "";
       let instructorOptions = [];
       let pendingChanges = {};
 
       function getCourseId() {
         const header = document.querySelector(".course-detail-header");
         return header?.dataset?.courseId || "";
+      }
+
+      function getCourseStudentIds() {
+        const header = document.querySelector(".course-detail-header");
+        const raw = header?.dataset?.studentIds || "";
+        return raw
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean);
       }
 
       function getInstructorId() {
@@ -390,6 +400,11 @@
               primaryBtn.setAttribute("onclick", "saveChanges()");
               primaryBtn.style.display = "";
               refreshSaveButtonState();
+            } else if (primaryBtn && currentUserRole === "student") {
+              const fromMyCourses =
+                new URLSearchParams(window.location.search).get("from") ===
+                "my-courses";
+              primaryBtn.style.display = fromMyCourses ? "none" : "";
             } else if (primaryBtn && currentUserRole !== "student") {
               primaryBtn.style.display = "none";
             }
@@ -412,6 +427,7 @@
           const data = await res.json().catch(() => ({}));
           if (data?.authenticated && data?.user?.role) {
             currentUserRole = data.user.role;
+            currentUserId = String(data.user.id || "");
             applyRoleUI();
           }
           if (currentUserRole === "admin") {
