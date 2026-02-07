@@ -18,6 +18,12 @@ router.get(
   apiCoursesController.getById,
 );
 router.post(
+  "/:id/enroll",
+  requireAuth,
+  requireRole("student"),
+  apiCoursesController.enroll,
+);
+router.post(
   "/",
   requireAuth,
   requireRole("admin", "instructor"),
