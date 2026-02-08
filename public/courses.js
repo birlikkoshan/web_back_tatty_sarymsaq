@@ -3,6 +3,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const coursesContainer = document.getElementById("courses");
   if (!coursesContainer) return; // Not on courses page
 
+  function hideFullscreenLoader() {
+    const el = document.getElementById("fullscreen-loader");
+    if (el) el.classList.add("hidden");
+  }
+
   const isInstructorCoursesPage = window.location.pathname === "/instructor-courses";
   const isMyCoursesPage = window.location.pathname === "/my-courses";
   const showDeleteButton = coursesContainer.dataset.showDelete !== "false";
@@ -222,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const url = `/api/courses?${queryParams.toString()}`;
       coursesContainer.innerHTML =
-        '<p style="text-align: center; color: #666; grid-column: 1/-1;">Loading courses...</p>';
+        '<div class="loader-container"><div class="loader-spinner"></div><span class="loader-text">Loading courses...</span></div>';
 
       const response = await fetch(url);
       const data = await response.json().catch(() => ({}));
@@ -273,6 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
         coursesContainer.innerHTML = `<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">${escapeHtml(msg)}${
           details ? " — " + escapeHtml(details) : ""
         }</p>`;
+        hideFullscreenLoader();
         return;
       }
 
@@ -284,15 +290,18 @@ document.addEventListener("DOMContentLoaded", () => {
         coursesContainer.innerHTML =
           '<p style="text-align: center; color: #666; grid-column: 1/-1;">No courses found</p>';
         renderPagination();
+        hideFullscreenLoader();
         return;
       }
       renderCourses(courses);
       renderPagination();
+      hideFullscreenLoader();
     } catch (error) {
       console.error("Error:", error);
       coursesContainer.innerHTML =
         '<p style="text-align: center; color: #d32f2f; grid-column: 1/-1;">Error loading courses</p>';
       if (paginationEl) paginationEl.innerHTML = "";
+      hideFullscreenLoader();
     }
   }
 

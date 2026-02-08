@@ -110,8 +110,12 @@ function generateCourseInfo(item, stats) {
 
       <div class="course-section instructor-only students-section">
         <h2>Students</h2>
-        <p id="studentsLoadingText">Loading students...</p>
-        <h3 class="students-table-title">Students Table</h3>
+        <div id="studentsLoadingArea" class="loader-container">
+          <div class="loader-spinner"></div>
+          <span class="loader-text">Loading students...</span>
+        </div>
+        <p id="studentsLoadingText" style="display:none"></p>
+        <h3 class="students-table-title" style="display:none">Students Table</h3>
         <div class="students-table">
           <div class="students-row students-head">
             <div>Name</div>

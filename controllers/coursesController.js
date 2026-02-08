@@ -6,6 +6,16 @@ const { escapeHtml, calculateStats, generateCourseInfo, isValidObjectId } = requ
 
 const VIEWS_DIR = path.join(__dirname, "../views");
 
+function sendErrorPage(res, status, title, message) {
+  return res.status(status).send(`
+    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
+      <h2>${title}</h2>
+      <p>${message}</p>
+      <p><a href="/courses">Back to Courses</a></p>
+    </div>
+  `);
+}
+
 function listPage(req, res) {
   const role = req.session?.role;
   const templateFile =
@@ -22,7 +32,7 @@ function listPage(req, res) {
     }
     const html = template.replace(
       /{{COURSES_LIST}}/g,
-      '<p style="text-align: center; color: #666; grid-column: 1/-1;">Loading courses...</p>'
+      '<div class="loader-container"><div class="loader-spinner"></div><span class="loader-text">Loading courses...</span></div>'
     );
     res.send(html);
   });
@@ -32,13 +42,7 @@ function detailPage(req, res) {
   const { id } = req.params;
 
   if (!isValidObjectId(id)) {
-    return res.status(400).send(`
-      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
-        <h2>Invalid Course ID</h2>
-        <p>The provided course ID is invalid.</p>
-        <p><a href="/courses">Back to Courses</a></p>
-      </div>
-    `);
+    return sendErrorPage(res, 400, "Invalid Course ID", "The provided course ID is invalid.");
   }
 
   const staticPath = path.join(VIEWS_DIR, id + ".html");
@@ -49,13 +53,12 @@ function detailPage(req, res) {
       try {
         const item = await findCourseById(id);
         if (!item) {
-          return res.status(404).send(`
-            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
-              <h2>Course Not Found</h2>
-              <p>Course with ID ${escapeHtml(id)} does not exist.</p>
-              <p><a href="/courses">Back to Courses</a></p>
-            </div>
-          `);
+          return sendErrorPage(
+            res,
+            404,
+            "Course Not Found",
+            `Course with ID ${escapeHtml(id)} does not exist.`
+          );
         }
 
         const courseData = { ...item, id: String(item._id) };
@@ -83,13 +86,7 @@ function detailPage(req, res) {
         });
       } catch (error) {
         console.error("Error fetching course:", error);
-        return res.status(500).send(`
-          <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px;">
-            <h2>Error</h2>
-            <p>An error occurred while loading the course.</p>
-            <p><a href="/courses">Back to Courses</a></p>
-          </div>
-        `);
+        return sendErrorPage(res, 500, "Error", "An error occurred while loading the course.");
       }
     })();
   });

@@ -54,7 +54,9 @@
 
         if (response.ok) {
           errorMessage.textContent = '';
-          window.location.href = '/courses';
+          const role = (data.role || 'student').toLowerCase();
+          const redirect = role === 'admin' ? '/admin-courses' : role === 'instructor' ? '/instructor-courses' : '/courses';
+          window.location.href = redirect;
         } else {
           errorMessage.textContent = data.error || 'Login failed. Please try again.';
           errorMessage.style.color = 'red';

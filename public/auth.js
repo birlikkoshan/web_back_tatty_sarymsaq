@@ -12,19 +12,30 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       if (data && data.authenticated) {
+        const user = data.user || {};
         if (authLink) {
-          const user = data.user || {};
           const name = user.firstname
             ? `${user.firstname}${user.surname ? ' ' + user.surname : ''}`
             : 'Profile';
           authLink.textContent = name;
           authLink.href = '/profile';
         }
+        const coursesNav = document.getElementById('courses-nav-link');
+        if (coursesNav) {
+          const role = (user.role || 'student').toLowerCase();
+          coursesNav.href = role === 'admin' ? '/admin-courses' : role === 'instructor' ? '/instructor-courses' : '/courses';
+          coursesNav.textContent = role === 'instructor' ? 'My Courses' : 'Courses';
+        }
         if (logoutLink) logoutLink.style.display = 'inline-block';
       } else {
         if (authLink) {
           authLink.textContent = 'Login';
           authLink.href = '/login';
+        }
+        const coursesNav = document.getElementById('courses-nav-link');
+        if (coursesNav) {
+          coursesNav.href = '/courses';
+          coursesNav.textContent = 'Courses';
         }
         if (logoutLink) logoutLink.style.display = 'none';
       }

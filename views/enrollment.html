@@ -14,6 +14,10 @@
     <link rel="stylesheet" href="/enrollment.css" />
   </head>
   <body data-user-role="{{USER_ROLE}}" data-user-id="{{USER_ID}}">
+    <div id="fullscreen-loader" class="fullscreen-loader">
+      <div class="loader-spinner"></div>
+      <span class="loader-text">Loading...</span>
+    </div>
     <header class="header">
       <div class="container header-inner">
         <div class="logo">StudentMS</div>
@@ -168,8 +172,15 @@
 
       async function loadCourseStudents(courseId) {
         const listEl = document.getElementById("studentsList");
-        const loadingEl = document.getElementById("studentsLoadingText");
-        if (!listEl || !loadingEl) return;
+        const loadingArea = document.getElementById("studentsLoadingArea");
+        const loadingText = document.getElementById("studentsLoadingText");
+        const tableTitle = document.querySelector(".students-table-title");
+        if (!listEl) return;
+
+        function hideLoader() {
+          if (loadingArea) loadingArea.style.display = "none";
+          if (tableTitle) tableTitle.style.display = "";
+        }
 
         try {
           const res = await fetch(`/api/courses/${courseId}/students`, {
@@ -178,18 +189,20 @@
           const data = await res.json().catch(() => []);
 
           if (!res.ok) {
-            loadingEl.textContent = "Failed to load students";
+            hideLoader();
+            if (loadingText) { loadingText.textContent = "Failed to load students"; loadingText.style.display = ""; }
             return;
           }
 
           const students = Array.isArray(data) ? data : [];
+          hideLoader();
           if (students.length === 0) {
-            loadingEl.textContent = "No students assigned yet";
+            if (loadingText) { loadingText.textContent = "No students assigned yet"; loadingText.style.display = ""; }
             listEl.innerHTML = "";
             return;
           }
 
-          loadingEl.style.display = "none";
+          if (loadingText) loadingText.style.display = "none";
           listEl.innerHTML = students
             .map((s) => {
               const fullName = [s.firstname, s.surname].filter(Boolean).join(" ").trim() || "Unnamed student";
@@ -211,7 +224,8 @@
             })
             .join("");
         } catch (_) {
-          loadingEl.textContent = "Failed to load students";
+          hideLoader();
+          if (loadingText) { loadingText.textContent = "Failed to load students"; loadingText.style.display = ""; }
         }
       }
 
@@ -412,8 +426,6 @@
               document.querySelectorAll(".instructor-only").forEach((el) => {
                 el.style.display = "";
               });
-              const courseId = getCourseId();
-              if (courseId) loadCourseStudents(courseId);
             } else {
               document.querySelectorAll(".instructor-only").forEach((el) => {
                 el.style.display = "none";
@@ -431,9 +443,14 @@
             applyRoleUI();
           }
           if (currentUserRole === "admin") {
-            loadInstructorOptions();
+            await loadInstructorOptions();
+          } else if (currentUserRole === "instructor") {
+            const courseId = getCourseId();
+            if (courseId) await loadCourseStudents(courseId);
           }
         } catch (_) {}
+        const loaderEl = document.getElementById("fullscreen-loader");
+        if (loaderEl) loaderEl.classList.add("hidden");
       });
     </script>
     <script src="/auth.js" defer></script>

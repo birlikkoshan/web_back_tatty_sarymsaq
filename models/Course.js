@@ -77,7 +77,7 @@ async function incrementEnrollment(id) {
     { $inc: { enrolled: 1 }, $set: { updatedAt: new Date() } },
     { returnDocument: "after" },
   );
-  return result.value || null;
+  return result?.value ?? result ?? null;
 }
 
 async function decrementEnrollment(id) {
@@ -90,7 +90,7 @@ async function decrementEnrollment(id) {
     { $inc: { enrolled: -1 }, $set: { updatedAt: new Date() } },
     { returnDocument: "after" },
   );
-  return result.value || null;
+  return result?.value ?? result ?? null;
 }
 
 /** Add student to course by ID. Fails if already enrolled or at capacity. */
@@ -110,7 +110,7 @@ async function addStudentToCourse(courseId, studentId) {
     },
     { returnDocument: "after" },
   );
-  return result.value || null;
+  return result?.value ?? result ?? null;
 }
 
 /** Remove student from course by ID. */
@@ -129,7 +129,7 @@ async function removeStudentFromCourse(courseId, studentId) {
     },
     { returnDocument: "after" },
   );
-  return result.value || null;
+  return result?.value ?? result ?? null;
 }
 
 /** Find all courses that contain this student (by studentId). */

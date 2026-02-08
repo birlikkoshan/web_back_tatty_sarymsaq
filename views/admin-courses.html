@@ -11,13 +11,17 @@
   <link rel="stylesheet" href="/courses.css">
 </head>
 <body>
+  <div id="fullscreen-loader" class="fullscreen-loader">
+    <div class="loader-spinner"></div>
+    <span class="loader-text">Loading...</span>
+  </div>
   <header class="header">
     <div class="container header-inner">
       <div class="logo">StudentMS</div>
       <nav class="nav">
         <a href="/">Home</a>
         <a href="/about">About</a>
-        <a class="choosed-link" href="/admin-courses">Courses</a>
+        <a id="courses-nav-link" class="choosed-link" href="/admin-courses">Courses</a>
         <a href="/contact">Contact</a>
         <a id="auth-link" href="/login">Login</a>
         <a id="logout-link" href="#" style="display:none">Logout</a>
