@@ -13,11 +13,15 @@ async function connectDB() {
   }
 
   const mongoOptions = {
-    tls: true,
     retryWrites: true,
     maxPoolSize: 10,
-    serverSelectionTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 10000,
   };
+  if (process.env.MONGODB_TLS === "false" || uri.includes("railway.internal")) {
+    mongoOptions.tls = false;
+  } else if (uri.startsWith("mongodb+srv://") || process.env.MONGODB_TLS === "true") {
+    mongoOptions.tls = true;
+  }
 
   client = new MongoClient(uri, mongoOptions);
   await client.connect();
