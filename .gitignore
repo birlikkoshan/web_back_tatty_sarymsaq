@@ -9,6 +9,7 @@ node_modules/.package-lock.json
 build/
 dist/
 frontend/
+seed/
 # Logs
 *.log
 npm-debug.log*
