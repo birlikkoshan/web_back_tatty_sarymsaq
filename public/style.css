@@ -456,6 +456,39 @@ footer {
   flex-wrap: wrap;
 }
 
+.admin-status {
+  margin-bottom: 16px;
+  min-height: 22px;
+  font-weight: 500;
+}
+
+.admin-status.error {
+  color: #dc2626;
+}
+
+.admin-status.success {
+  color: #166534;
+}
+
+.admin-hint {
+  display: inline-block;
+  margin-top: 6px;
+  color: #6b7280;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-submit {
+  border: none;
+  cursor: pointer;
+}
+
 
 /********** Modal Styles **********/
 .modal {

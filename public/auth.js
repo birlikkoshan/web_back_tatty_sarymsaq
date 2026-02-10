@@ -3,8 +3,25 @@
 document.addEventListener('DOMContentLoaded', () => {
   const authLink = document.getElementById('auth-link');
   const logoutLink = document.getElementById('logout-link');
+  const nav = document.querySelector('.nav');
 
   if (!authLink && !logoutLink) return;
+
+  function upsertAdminInstructorLink(show) {
+    if (!nav) return;
+    const existing = document.getElementById('admin-instructors-nav-link');
+    if (!show) {
+      if (existing) existing.remove();
+      return;
+    }
+    if (existing) return;
+
+    const link = document.createElement('a');
+    link.id = 'admin-instructors-nav-link';
+    link.href = '/admin-instructors';
+    link.textContent = 'Add Instructor';
+    nav.appendChild(link);
+  }
 
   async function refreshAuthLinks() {
     try {
@@ -25,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const role = (user.role || 'student').toLowerCase();
           coursesNav.href = role === 'admin' ? '/admin-courses' : role === 'instructor' ? '/instructor-courses' : '/courses';
           coursesNav.textContent = role === 'instructor' ? 'My Courses' : 'Courses';
+          upsertAdminInstructorLink(role === 'admin');
         }
         if (logoutLink) logoutLink.style.display = 'inline-block';
       } else {
@@ -37,10 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
           coursesNav.href = '/courses';
           coursesNav.textContent = 'Courses';
         }
+        upsertAdminInstructorLink(false);
         if (logoutLink) logoutLink.style.display = 'none';
       }
     } catch (_) {
       // If /api/me fails, keep default links.
+      upsertAdminInstructorLink(false);
     }
   }
 

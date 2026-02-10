@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Instructor | StudentMS</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/style.css" />
+  <script src="/admin-instructors.js" defer></script>
+  <script src="/auth.js" defer></script>
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <div class="logo">
+        <span>StudentMS</span>
+      </div>
+
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a id="courses-nav-link" class="choosed-link" href="/admin-courses">Courses</a>
+        <a href="/contact">Contact</a>
+        <a id="auth-link" href="/login">Login</a>
+        <a id="logout-link" href="#" style="display:none">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="contact">
+      <div class="container contact-content">
+        <h1>Create <span>Instructor</span></h1>
+        <p class="contact-subtitle">
+          Admin-only form for creating instructor accounts.
+        </p>
+
+        <form id="create-instructor-form" class="contact-form">
+          <div id="status-message" class="admin-status" aria-live="polite"></div>
+
+          <div class="form-group">
+            <label for="firstname-input">Name</label>
+            <input type="text" id="firstname-input" name="firstname" placeholder="Name" required />
+          </div>
+
+          <div class="form-group">
+            <label for="surname-input">Surname</label>
+            <input type="text" id="surname-input" name="surname" placeholder="Surname" required />
+          </div>
+
+          <div class="form-group">
+            <label for="email-input">Email (auto-generated)</label>
+            <input type="email" id="email-input" name="email" readonly required />
+            <small class="admin-hint">Format: name_surname@university.edu</small>
+          </div>
+
+          <div class="form-group">
+            <label for="phone-input">Phone</label>
+            <input type="tel" id="phone-input" name="phone" placeholder="+7 777 000 00 00" required />
+          </div>
+
+          <div class="form-group">
+            <label for="password-input">Password</label>
+            <input type="password" id="password-input" name="password" minlength="8" placeholder="At least 8 characters" required />
+          </div>
+
+          <div class="admin-actions">
+            <a class="btn btn-secondary" href="/admin-courses">Back to Courses</a>
+            <button type="submit" class="btn-primary admin-submit">Create Instructor</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <p>© 2025 Student Management System - Built by tatty sarymsaq</p>
+    </div>
+  </footer>
+</body>
+</html>
