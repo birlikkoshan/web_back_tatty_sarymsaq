@@ -38,6 +38,10 @@ function adminCoursesPage(req, res) {
   res.sendFile(path.join(VIEWS_DIR, "admin-courses.html"));
 }
 
+function adminInstructorsPage(req, res) {
+  res.sendFile(path.join(VIEWS_DIR, "admin-instructors.html"));
+}
+
 module.exports = {
   home,
   about,
@@ -48,4 +52,5 @@ module.exports = {
   myCoursesStudentPage,
   instructorCoursesPage,
   adminCoursesPage,
+  adminInstructorsPage,
 };

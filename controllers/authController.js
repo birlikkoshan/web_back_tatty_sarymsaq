@@ -17,6 +17,18 @@ function isValidPassword(pw) {
   return typeof pw === "string" && pw.length >= 8;
 }
 
+function normalizeNamePart(value) {
+  if (typeof value !== "string") return "";
+  return value.trim().toLowerCase().replace(/\s+/g, "_");
+}
+
+function buildInstructorEmail(firstname, surname) {
+  const first = normalizeNamePart(firstname);
+  const last = normalizeNamePart(surname);
+  if (!first || !last) return "";
+  return `${first}_${last}@university.edu`;
+}
+
 async function signup(req, res) {
   try {
     const firstname =
@@ -149,10 +161,74 @@ async function listInstructors(req, res) {
   }
 }
 
+async function createInstructor(req, res) {
+  try {
+    const firstname =
+      typeof req.body.firstname === "string" ? req.body.firstname.trim() : "";
+    const surname =
+      typeof req.body.surname === "string" ? req.body.surname.trim() : "";
+    const password = req.body.password;
+    const phone = typeof req.body.phone === "string" ? req.body.phone.trim() : "";
+    const email = buildInstructorEmail(firstname, surname);
+
+    const errors = [];
+    if (!firstname) errors.push("Name is required");
+    if (!surname) errors.push("Surname is required");
+    if (!phone) errors.push("Phone is required");
+    if (!isValidPassword(password)) {
+      errors.push("Password must be at least 8 characters");
+    }
+    if (!email || !isValidEmail(email)) {
+      errors.push("Generated email is invalid");
+    }
+
+    if (errors.length) {
+      return res.status(400).json({ error: "Bad Request", details: errors });
+    }
+
+    const existing = await findUserByEmail(email);
+    if (existing) {
+      return res.status(409).json({
+        error: "Conflict",
+        details: ["Instructor with this generated email already exists"],
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const now = new Date();
+    const created = await insertUser({
+      firstname,
+      surname,
+      email,
+      phone,
+      passwordHash,
+      role: "instructor",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return res.status(201).json({
+      ok: true,
+      instructor: {
+        id: String(created._id),
+        firstname: created.firstname,
+        surname: created.surname,
+        email: created.email,
+        phone: created.phone || "",
+        role: created.role,
+      },
+    });
+  } catch (err) {
+    console.error("Error in POST /api/instructors:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 module.exports = {
   signup,
   login,
   logout,
   me,
   listInstructors,
+  createInstructor,
 };

@@ -15,5 +15,11 @@ router.get(
   requireRole("admin"),
   authController.listInstructors,
 );
+router.post(
+  "/instructors",
+  requireAuth,
+  requireRole("admin"),
+  authController.createInstructor,
+);
 
 module.exports = router;
